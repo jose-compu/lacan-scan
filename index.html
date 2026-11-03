@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lacan Scan</title>
+  <meta name="description" content="AI-safety static scanner for Git repositories. CLI lacan · Action jose-compu/lacan-scan@v1." />
+  <meta property="og:title" content="Lacan Scan" />
+  <meta property="og:description" content="Analyseur de sécurité IA pour dépôts Git" />
+  <meta property="og:image" content="https://jose-compu.github.io/lacan-scan/assets/logo-pages-og.png" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#2E4A3F" />
+  <link rel="icon" href="assets/logo-action-icon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="assets/logo-action.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <header class="hero">
+    <img class="mark" src="assets/logo-readme.png" alt="Lacan Scan" width="420" />
+    <p class="tag">Analyseur de sécurité IA pour dépôts Git</p>
+    <p class="lede">Static AI-safety scanning for repository folders. File traces only. Crisp CLI and GitHub Action.</p>
+    <p class="cta">
+      <a class="btn" href="https://github.com/jose-compu/lacan-scan">Repository</a>
+      <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/blob/main/README.md">README</a>
+      <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/releases">Releases</a>
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>Action</h2>
+      <div class="action-row">
+        <img class="action-mark" src="assets/logo-action.png" alt="Lacan Scan Action mark" width="112" height="112" />
+        <pre><code>- uses: jose-compu/lacan-scan@v1
+  with:
+    path: .
+    fail-on: HIGH
+    output: sarif
+    version: "1"</code></pre>
+      </div>
+      <p class="aside">
+        <img class="badge" src="assets/logo-action-badge.png" alt="Lacan Scan badge" width="280" />
+      </p>
+    </section>
+
+    <section>
+      <h2>CLI</h2>
+      <pre><code>lacan scan . --fail-on HIGH --output cli,sarif</code></pre>
+    </section>
+
+    <section class="motifs" aria-label="Identity motifs">
+      <figure>
+        <img src="assets/motif-column.png" alt="Ionic column motif" />
+      </figure>
+      <figure>
+        <img src="assets/motif-fleur.png" alt="Fleur-de-lis motif" />
+      </figure>
+      <figure>
+        <img src="assets/motif-building.png" alt="Parisian facade motif" />
+      </figure>
+    </section>
+  </main>
+
+  <footer>
+    <p>SÉCURITÉ · TRANSPARENCE · CONFIANCE</p>
+    <p><a href="https://github.com/jose-compu/lacan-scan">jose-compu/lacan-scan</a></p>
+  </footer>
+</body>
+</html>
