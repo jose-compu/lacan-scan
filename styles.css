@@ -126,6 +126,38 @@ pre {
 }
 code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 
+.prose {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #3d5248;
+}
+.prose a { color: var(--vert); }
+
+.note {
+  margin: 1rem 0 0;
+  font-size: 0.88rem;
+  color: #4a5f55;
+}
+
+table.releases {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+table.releases th,
+table.releases td {
+  border: 1px solid rgba(46, 74, 63, 0.22);
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+table.releases th {
+  background: rgba(46, 74, 63, 0.08);
+  color: var(--vert);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  letter-spacing: 0.03em;
+}
+
 .motifs {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

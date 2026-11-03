@@ -3,10 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Lacan Scan</title>
-  <meta name="description" content="AI-safety static scanner for Git repositories. CLI lacan 3.0.0 · Action jose-compu/lacan-scan@v3." />
+  <title>Lacan Scan — AI safety scanner for Git</title>
+  <link rel="canonical" href="https://jose-compu.github.io/lacan-scan/" />
+  <meta name="description" content="Static AI-safety scanner for Git repositories. CLI lacan 3.0.0 · GitHub Action jose-compu/lacan-scan@v3 · SARIF for code scanning." />
   <meta property="og:title" content="Lacan Scan" />
   <meta property="og:description" content="Analyseur de sécurité IA pour dépôts Git" />
+  <meta property="og:url" content="https://jose-compu.github.io/lacan-scan/" />
   <meta property="og:image" content="https://jose-compu.github.io/lacan-scan/assets/logo-pages-og.png" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
@@ -23,17 +25,22 @@
   <header class="hero">
     <img class="mark" src="assets/logo-readme.png" alt="Lacan Scan" width="420" />
     <p class="tag">Analyseur de sécurité IA pour dépôts Git</p>
-    <p class="lede">Static AI-safety scanning for repository folders. File traces only. Current line: <strong>v3.0.0</strong> (<code>@v3</code> Action; <code>@v1</code> / <code>@v2</code> still available).</p>
+    <p class="lede">File-trace static scanning for AI/agent risk patterns. Crisp CLI and composite GitHub Action with SARIF output. Current release: <strong>v3.0.0</strong> (<code>@v3</code>).</p>
     <p class="cta">
       <a class="btn" href="https://github.com/jose-compu/lacan-scan">Repository</a>
       <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/blob/main/README.md">README</a>
-      <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/releases/tag/v3.0.0">Release v3.0.0</a>
+      <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/releases/tag/v3.0.0">Download v3.0.0</a>
     </p>
   </header>
 
   <main>
     <section>
-      <h2>Action</h2>
+      <h2>Install</h2>
+      <p class="prose">Download <code>lacan-&lt;triple&gt;.tar.gz</code> from <a href="https://github.com/jose-compu/lacan-scan/releases/latest">Releases</a>, verify the <code>.sha256</code>, and add <code>lacan</code> to your <code>PATH</code>. Or build from source with <a href="https://crisp-lang.org/">Crisp 1.11+</a>.</p>
+    </section>
+
+    <section>
+      <h2>GitHub Action</h2>
       <div class="action-row">
         <img class="action-mark" src="assets/logo-action.png" alt="Lacan Scan Action mark" width="112" height="112" />
         <pre><code>- uses: jose-compu/lacan-scan@v3
@@ -44,8 +51,14 @@
     sarif-file: lacan.sarif
     version: "3"
     changed-only: "true"
-    changed-base: "&lt;PR base SHA&gt;"</code></pre>
+    changed-base: ${{ github.event.pull_request.base.sha }}
+- uses: github/codeql-action/upload-sarif@v3
+  if: always()
+  with:
+    sarif_file: lacan.sarif
+    category: lacan</code></pre>
       </div>
+      <p class="note">PR jobs need sufficient <code>fetch-depth</code> so <code>changed-base</code> resolves. Pin <code>version: "3.0.0"</code> for a fixed binary; use <code>@v1</code> or <code>@v2</code> for earlier rule lines.</p>
       <p class="aside">
         <img class="badge" src="assets/logo-action-badge.png" alt="Lacan Scan badge" width="280" />
       </p>
@@ -55,11 +68,21 @@
       <h2>CLI</h2>
       <pre><code>lacan scan . --fail-on HIGH --output cli,sarif
 lacan scan . --changed-only origin/main --fail-on HIGH</code></pre>
+      <p class="prose">Optional hook: <code>scripts/pre-commit-lacan.sh</code> in the repo (requires <code>lacan</code> on <code>PATH</code>).</p>
     </section>
 
     <section>
-      <h2>v3.0.0</h2>
-      <p>PR changed-files mode (<code>--changed-only</code>), optional <code>scripts/pre-commit-lacan.sh</code>, all v1/v2 detectors unchanged.</p>
+      <h2>Release lines</h2>
+      <table class="releases">
+        <thead>
+          <tr><th>Major</th><th>Action</th><th>Highlights</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>v3</td><td><code>@v3</code></td><td>Changed-only PR scans, pre-commit helper</td></tr>
+          <tr><td>v2</td><td><code>@v2</code></td><td>AIS105, AIS204, AIS401, AIS504</td></tr>
+          <tr><td>v1</td><td><code>@v1</code></td><td>Core detectors, SARIF Action</td></tr>
+        </tbody>
+      </table>
     </section>
 
     <section class="motifs" aria-label="Identity motifs">
@@ -77,7 +100,7 @@ lacan scan . --changed-only origin/main --fail-on HIGH</code></pre>
 
   <footer>
     <p>SÉCURITÉ · TRANSPARENCE · CONFIANCE</p>
-    <p><a href="https://github.com/jose-compu/lacan-scan">jose-compu/lacan-scan</a></p>
+    <p><a href="https://github.com/jose-compu/lacan-scan">jose-compu/lacan-scan</a> · Apache-2.0</p>
   </footer>
 </body>
 </html>
