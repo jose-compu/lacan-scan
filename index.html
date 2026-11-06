@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Lacan Scan — AI safety scanner for Git</title>
   <link rel="canonical" href="https://jose-compu.github.io/lacan-scan/" />
-  <meta name="description" content="Static AI-safety scanner for Git repositories. CLI lacan 4.0.1 · GitHub Action jose-compu/lacan-scan@v4 · SARIF for code scanning." />
+  <meta name="description" content="Static AI-safety scanner for Git repositories. CLI lacan 5.0.0 · GitHub Action jose-compu/lacan-scan@v5 · crates.io lacan-scan · SARIF for code scanning." />
   <meta property="og:title" content="Lacan Scan" />
   <meta property="og:description" content="Analyseur de sécurité IA pour dépôts Git" />
   <meta property="og:url" content="https://jose-compu.github.io/lacan-scan/" />
@@ -25,31 +25,31 @@
   <header class="hero">
     <img class="mark" src="assets/logo-readme.png" alt="Lacan Scan" width="420" />
     <p class="tag">Analyseur de sécurité IA pour dépôts Git</p>
-    <p class="lede">File-trace static scanning for AI/agent risk patterns. Crisp CLI and composite GitHub Action with SARIF output. Current release: <strong>v4.0.1</strong> (<code>@v4</code>).</p>
+    <p class="lede">File-trace static scanning for AI/agent risk patterns. Crisp CLI and composite GitHub Action with SARIF output. Current release: <strong>v5.0.0</strong> (<code>@v5</code>).</p>
     <p class="cta">
       <a class="btn" href="https://github.com/jose-compu/lacan-scan">Repository</a>
       <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/blob/main/README.md">README</a>
-      <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/releases/tag/v4.0.1">Download v4.0.1</a>
+      <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/releases/tag/v5.0.0">Download v5.0.0</a>
     </p>
   </header>
 
   <main>
     <section>
       <h2>Install</h2>
-      <p class="prose">Download <code>lacan-&lt;triple&gt;.tar.gz</code> from <a href="https://github.com/jose-compu/lacan-scan/releases/latest">Releases</a>, verify the <code>.sha256</code>, and add <code>lacan</code> to your <code>PATH</code>. Or build from source with <a href="https://crisp-lang.org/">Crisp 1.11.1+</a>.</p>
+      <p class="prose">Install with <code>cargo install lacan-scan --locked</code>, or download <code>lacan-&lt;triple&gt;.tar.gz</code> from <a href="https://github.com/jose-compu/lacan-scan/releases/latest">Releases</a> (verify <code>.sha256</code>). Or build from source with <a href="https://crisp-lang.org/">Crisp 1.11.1+</a>.</p>
     </section>
 
     <section>
       <h2>GitHub Action</h2>
       <div class="action-row">
         <img class="action-mark" src="assets/logo-action.png" alt="Lacan Scan Action mark" width="112" height="112" />
-        <pre><code>- uses: jose-compu/lacan-scan@v4
+        <pre><code>- uses: jose-compu/lacan-scan@v5
   with:
     path: .
     fail-on: HIGH
     output: sarif
     sarif-file: lacan.sarif
-    version: "4"
+    version: "5"
     changed-only: "true"
     changed-base: ${{ github.event.pull_request.base.sha }}
 - uses: github/codeql-action/upload-sarif@v3
@@ -58,7 +58,7 @@
     sarif_file: lacan.sarif
     category: lacan</code></pre>
       </div>
-      <p class="note">PR jobs need sufficient <code>fetch-depth</code> so <code>changed-base</code> resolves. Pin <code>version: "4.0.1"</code> for a fixed binary; use <code>@v1</code>, <code>@v2</code>, or <code>@v3</code> for earlier rule lines. Skip a false positive with <code>.lacan.toml</code> or <code># lacan:skip=AIS008:reason</code>.</p>
+      <p class="note">PR jobs need sufficient <code>fetch-depth</code> so <code>changed-base</code> resolves. Pin <code>version: "5.0.0"</code> for a fixed binary; use <code>@v1</code>–<code>@v4</code> for earlier rule lines. Skip a false positive with <code>.lacan.toml</code> or <code># lacan:skip=AIS008:reason</code>.</p>
       <p class="aside">
         <img class="badge" src="assets/logo-action-badge.png" alt="Lacan Scan badge" width="280" />
       </p>
@@ -79,6 +79,7 @@ lacan scan . --skip-rules AIS102</code></pre>
           <tr><th>Major</th><th>Action</th><th>Highlights</th></tr>
         </thead>
         <tbody>
+          <tr><td>v5</td><td><code>@v5</code></td><td>AIS106 / AIS108 / AIS109; crates.io <code>lacan-scan</code></td></tr>
           <tr><td>v4</td><td><code>@v4</code></td><td><code>.lacan.toml</code> and inline skip comments</td></tr>
           <tr><td>v3</td><td><code>@v3</code></td><td>Changed-only PR scans, pre-commit helper</td></tr>
           <tr><td>v2</td><td><code>@v2</code></td><td>AIS105, AIS204, AIS401, AIS504</td></tr>
