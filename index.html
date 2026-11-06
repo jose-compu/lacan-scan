@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Lacan Scan — AI safety scanner for Git</title>
   <link rel="canonical" href="https://jose-compu.github.io/lacan-scan/" />
-  <meta name="description" content="Static AI-safety scanner for Git repositories. CLI lacan 4.0.0 · GitHub Action jose-compu/lacan-scan@v4 · SARIF for code scanning." />
+  <meta name="description" content="Static AI-safety scanner for Git repositories. CLI lacan 4.0.1 · GitHub Action jose-compu/lacan-scan@v4 · SARIF for code scanning." />
   <meta property="og:title" content="Lacan Scan" />
   <meta property="og:description" content="Analyseur de sécurité IA pour dépôts Git" />
   <meta property="og:url" content="https://jose-compu.github.io/lacan-scan/" />
@@ -25,18 +25,18 @@
   <header class="hero">
     <img class="mark" src="assets/logo-readme.png" alt="Lacan Scan" width="420" />
     <p class="tag">Analyseur de sécurité IA pour dépôts Git</p>
-    <p class="lede">File-trace static scanning for AI/agent risk patterns. Crisp CLI and composite GitHub Action with SARIF output. Current release: <strong>v4.0.0</strong> (<code>@v4</code>).</p>
+    <p class="lede">File-trace static scanning for AI/agent risk patterns. Crisp CLI and composite GitHub Action with SARIF output. Current release: <strong>v4.0.1</strong> (<code>@v4</code>).</p>
     <p class="cta">
       <a class="btn" href="https://github.com/jose-compu/lacan-scan">Repository</a>
       <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/blob/main/README.md">README</a>
-      <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/releases/tag/v4.0.0">Download v4.0.0</a>
+      <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/releases/tag/v4.0.1">Download v4.0.1</a>
     </p>
   </header>
 
   <main>
     <section>
       <h2>Install</h2>
-      <p class="prose">Download <code>lacan-&lt;triple&gt;.tar.gz</code> from <a href="https://github.com/jose-compu/lacan-scan/releases/latest">Releases</a>, verify the <code>.sha256</code>, and add <code>lacan</code> to your <code>PATH</code>. Or build from source with <a href="https://crisp-lang.org/">Crisp 1.11+</a>.</p>
+      <p class="prose">Download <code>lacan-&lt;triple&gt;.tar.gz</code> from <a href="https://github.com/jose-compu/lacan-scan/releases/latest">Releases</a>, verify the <code>.sha256</code>, and add <code>lacan</code> to your <code>PATH</code>. Or build from source with <a href="https://crisp-lang.org/">Crisp 1.11.1+</a>.</p>
     </section>
 
     <section>
@@ -58,7 +58,7 @@
     sarif_file: lacan.sarif
     category: lacan</code></pre>
       </div>
-      <p class="note">PR jobs need sufficient <code>fetch-depth</code> so <code>changed-base</code> resolves. Pin <code>version: "4.0.0"</code> for a fixed binary; use <code>@v1</code>, <code>@v2</code>, or <code>@v3</code> for earlier rule lines. Skip a false positive with <code>.lacan.toml</code> or <code># lacan:skip=AIS008:reason</code>.</p>
+      <p class="note">PR jobs need sufficient <code>fetch-depth</code> so <code>changed-base</code> resolves. Pin <code>version: "4.0.1"</code> for a fixed binary; use <code>@v1</code>, <code>@v2</code>, or <code>@v3</code> for earlier rule lines. Skip a false positive with <code>.lacan.toml</code> or <code># lacan:skip=AIS008:reason</code>.</p>
       <p class="aside">
         <img class="badge" src="assets/logo-action-badge.png" alt="Lacan Scan badge" width="280" />
       </p>
