@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Lacan Scan — AI safety scanner for Git</title>
   <link rel="canonical" href="https://jose-compu.github.io/lacan-scan/" />
-  <meta name="description" content="Static AI-safety scanner for Git repositories. CLI lacan 3.0.0 · GitHub Action jose-compu/lacan-scan@v3 · SARIF for code scanning." />
+  <meta name="description" content="Static AI-safety scanner for Git repositories. CLI lacan 4.0.0 · GitHub Action jose-compu/lacan-scan@v4 · SARIF for code scanning." />
   <meta property="og:title" content="Lacan Scan" />
   <meta property="og:description" content="Analyseur de sécurité IA pour dépôts Git" />
   <meta property="og:url" content="https://jose-compu.github.io/lacan-scan/" />
@@ -25,11 +25,11 @@
   <header class="hero">
     <img class="mark" src="assets/logo-readme.png" alt="Lacan Scan" width="420" />
     <p class="tag">Analyseur de sécurité IA pour dépôts Git</p>
-    <p class="lede">File-trace static scanning for AI/agent risk patterns. Crisp CLI and composite GitHub Action with SARIF output. Current release: <strong>v3.0.3</strong> (<code>@v3</code>).</p>
+    <p class="lede">File-trace static scanning for AI/agent risk patterns. Crisp CLI and composite GitHub Action with SARIF output. Current release: <strong>v4.0.0</strong> (<code>@v4</code>).</p>
     <p class="cta">
       <a class="btn" href="https://github.com/jose-compu/lacan-scan">Repository</a>
       <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/blob/main/README.md">README</a>
-      <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/releases/tag/v3.0.3">Download v3.0.3</a>
+      <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/releases/tag/v4.0.0">Download v4.0.0</a>
     </p>
   </header>
 
@@ -43,13 +43,13 @@
       <h2>GitHub Action</h2>
       <div class="action-row">
         <img class="action-mark" src="assets/logo-action.png" alt="Lacan Scan Action mark" width="112" height="112" />
-        <pre><code>- uses: jose-compu/lacan-scan@v3
+        <pre><code>- uses: jose-compu/lacan-scan@v4
   with:
     path: .
     fail-on: HIGH
     output: sarif
     sarif-file: lacan.sarif
-    version: "3"
+    version: "4"
     changed-only: "true"
     changed-base: ${{ github.event.pull_request.base.sha }}
 - uses: github/codeql-action/upload-sarif@v3
@@ -58,7 +58,7 @@
     sarif_file: lacan.sarif
     category: lacan</code></pre>
       </div>
-      <p class="note">PR jobs need sufficient <code>fetch-depth</code> so <code>changed-base</code> resolves. Pin <code>version: "3.0.0"</code> for a fixed binary; use <code>@v1</code> or <code>@v2</code> for earlier rule lines.</p>
+      <p class="note">PR jobs need sufficient <code>fetch-depth</code> so <code>changed-base</code> resolves. Pin <code>version: "4.0.0"</code> for a fixed binary; use <code>@v1</code>, <code>@v2</code>, or <code>@v3</code> for earlier rule lines. Skip a false positive with <code>.lacan.toml</code> or <code># lacan:skip=AIS008:reason</code>.</p>
       <p class="aside">
         <img class="badge" src="assets/logo-action-badge.png" alt="Lacan Scan badge" width="280" />
       </p>
@@ -67,8 +67,9 @@
     <section>
       <h2>CLI</h2>
       <pre><code>lacan scan . --fail-on HIGH --output cli,sarif
-lacan scan . --changed-only origin/main --fail-on HIGH</code></pre>
-      <p class="prose">Optional hook: <code>scripts/pre-commit-lacan.sh</code> in the repo (requires <code>lacan</code> on <code>PATH</code>).</p>
+lacan scan . --changed-only origin/main --fail-on HIGH
+lacan scan . --skip-rules AIS102</code></pre>
+      <p class="prose">Optional hook: <code>scripts/pre-commit-lacan.sh</code> (requires <code>lacan</code> on <code>PATH</code>). Drop <code>.lacan.toml</code> in the repo to skip rules or paths.</p>
     </section>
 
     <section>
@@ -78,6 +79,7 @@ lacan scan . --changed-only origin/main --fail-on HIGH</code></pre>
           <tr><th>Major</th><th>Action</th><th>Highlights</th></tr>
         </thead>
         <tbody>
+          <tr><td>v4</td><td><code>@v4</code></td><td><code>.lacan.toml</code> and inline skip comments</td></tr>
           <tr><td>v3</td><td><code>@v3</code></td><td>Changed-only PR scans, pre-commit helper</td></tr>
           <tr><td>v2</td><td><code>@v2</code></td><td>AIS105, AIS204, AIS401, AIS504</td></tr>
           <tr><td>v1</td><td><code>@v1</code></td><td>Core detectors, SARIF Action</td></tr>
