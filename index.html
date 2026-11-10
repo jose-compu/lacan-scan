@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Lacan Scan — AI safety scanner for Git</title>
   <link rel="canonical" href="https://jose-compu.github.io/lacan-scan/" />
-  <meta name="description" content="Static AI-safety scanner for Git repositories. CLI lacan 6.0.0 · GitHub Action jose-compu/lacan-scan@v6 · crates.io lacan-scan · SARIF for code scanning." />
+  <meta name="description" content="Static AI-safety scanner for Git repositories. CLI lacan 6.1.0 · GitHub Action jose-compu/lacan-scan@v6 · crates.io lacan-scan · SARIF for code scanning." />
   <meta property="og:title" content="Lacan Scan" />
   <meta property="og:description" content="Analyseur de sécurité IA pour dépôts Git" />
   <meta property="og:url" content="https://jose-compu.github.io/lacan-scan/" />
@@ -25,11 +25,11 @@
   <header class="hero">
     <img class="mark" src="assets/logo-readme.png" alt="Lacan Scan" width="420" />
     <p class="tag">Analyseur de sécurité IA pour dépôts Git</p>
-    <p class="lede">File-trace static scanning for AI/agent risk patterns. Crisp CLI and composite GitHub Action with SARIF output. Current release: <strong>v6.0.0</strong> (<code>@v6</code>) — L4 dataset and serving stats.</p>
+    <p class="lede">File-trace static scanning for AI/agent risk patterns. Crisp CLI and composite GitHub Action with SARIF output. Current release: <strong>v6.1.0</strong> (<code>@v6</code>) — experimental artifact detectors on the v6 line.</p>
     <p class="cta">
       <a class="btn" href="https://github.com/jose-compu/lacan-scan">Repository</a>
       <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/blob/main/README.md">README</a>
-      <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/releases/tag/v6.0.0">Download v6.0.0</a>
+      <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/releases/tag/v6.1.0">Download v6.1.0</a>
     </p>
   </header>
 
@@ -52,13 +52,13 @@
     version: "6"
     changed-only: "true"
     changed-base: ${{ github.event.pull_request.base.sha }}
-- uses: github/codeql-action/upload-sarif@v3
+- uses: github/codeql-action/upload-sarif@v4
   if: always()
   with:
     sarif_file: lacan.sarif
     category: lacan</code></pre>
       </div>
-      <p class="note">PR jobs need sufficient <code>fetch-depth</code> so <code>changed-base</code> resolves. Pin <code>version: "6.0.0"</code> for a fixed binary; use <code>@v1</code>–<code>@v5</code> for earlier rule lines. Skip a false positive with <code>.lacan.toml</code> or <code># lacan:skip=AIS008:reason</code>. Experimental rules (<code>AIS208</code>, <code>AIS209</code>) report but never fail the job.</p>
+      <p class="note">PR jobs need sufficient <code>fetch-depth</code> so <code>changed-base</code> resolves. Pin <code>version: "6.1.0"</code> for a fixed binary; use <code>@v1</code>–<code>@v5</code> for earlier rule lines. Skip a false positive with <code>.lacan.toml</code> or <code># lacan:skip=AIS008:reason</code>. Experimental rules (<code>AIS107</code>, <code>AIS110</code>, <code>AIS205</code>–<code>AIS209</code>, <code>AIS211</code>) report but never fail the job.</p>
       <p class="aside">
         <img class="badge" src="assets/logo-action-badge.png" alt="Lacan Scan badge" width="280" />
       </p>
@@ -83,6 +83,12 @@ lacan scan . --skip-rules AIS102</code></pre>
           <tr><td><code>AIS209</code></td><td>LOW, experimental</td><td>Safety-stripping / obedience fine-tune phrasing (never fails the job)</td></tr>
           <tr><td><code>AIS210</code></td><td>MEDIUM</td><td>Scripts that harvest model outputs at scale (distillation / logits)</td></tr>
           <tr><td><code>AIS304</code></td><td>MEDIUM</td><td>Logprobs/logits exposed without an obvious rate limit</td></tr>
+          <tr><td><code>AIS107</code></td><td>HIGH, experimental</td><td>Content-dependent chat template (fuel-capped render)</td></tr>
+          <tr><td><code>AIS110</code></td><td>MEDIUM, experimental</td><td>RAG corpus text addressed to the model</td></tr>
+          <tr><td><code>AIS205</code></td><td>HIGH, experimental</td><td>Malformed safetensors header</td></tr>
+          <tr><td><code>AIS206</code></td><td>MEDIUM, experimental</td><td>Broken GGUF header; embedded chat template checked as AIS106</td></tr>
+          <tr><td><code>AIS207</code></td><td>HIGH, experimental</td><td>NumPy object arrays, joblib, Keras Lambda</td></tr>
+          <tr><td><code>AIS211</code></td><td>MEDIUM, experimental</td><td>Localized safetensors tensor change</td></tr>
         </tbody>
       </table>
     </section>
@@ -94,7 +100,7 @@ lacan scan . --skip-rules AIS102</code></pre>
           <tr><th>Major</th><th>Action</th><th>Highlights</th></tr>
         </thead>
         <tbody>
-          <tr><td>v6</td><td><code>@v6</code></td><td>AIS208–210, AIS304 (L4 dataset / serving stats); experimental exit gate</td></tr>
+          <tr><td>v6</td><td><code>@v6</code></td><td>6.1.0 adds experimental AIS107, AIS110, AIS205–207, AIS211; 6.0.0 shipped AIS208–210, AIS304</td></tr>
           <tr><td>v5</td><td><code>@v5</code></td><td>AIS106 / AIS108 / AIS109; crates.io <code>lacan-scan</code></td></tr>
           <tr><td>v4</td><td><code>@v4</code></td><td><code>.lacan.toml</code> and inline skip comments</td></tr>
           <tr><td>v3</td><td><code>@v3</code></td><td>Changed-only PR scans, pre-commit helper</td></tr>
