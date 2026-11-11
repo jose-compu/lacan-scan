@@ -45,5 +45,6 @@ Or download lacan-<triple>.tar.gz from https://github.com/jose-compu/lacan-scan/
 - Human site: https://jose-compu.github.io/lacan-scan/
 - Agent install playbook: https://jose-compu.github.io/lacan-scan/install-action.md
 - Ready workflow YAML: https://jose-compu.github.io/lacan-scan/workflows/lacan.yml
+- Repo agent file: https://github.com/jose-compu/lacan-scan/blob/main/AGENTS.md
 - Full README: https://github.com/jose-compu/lacan-scan/blob/main/README.md
 - Roadmap: https://github.com/jose-compu/lacan-scan/blob/main/ROADMAP.md
