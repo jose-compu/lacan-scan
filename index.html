@@ -14,7 +14,7 @@
   <meta property="og:site_name" content="Lacan Scan" />
   <meta property="og:locale" content="en_US" />
   <meta property="og:title" content="Lacan Scan — AI safety scanner for Git" />
-  <meta property="og:description" content="Static AI-safety scanner. GitHub Action jose-compu/lacan-scan@v7 with SARIF, or cargo install lacan-scan. Release v7.1.0." />
+  <meta property="og:description" content="Static AI-safety scanner. GitHub Action jose-compu/lacan-scan@v7 with SARIF, or cargo install lacan-scan. Release v7.2.0." />
   <meta property="og:url" content="https://jose-compu.github.io/lacan-scan/" />
   <meta property="og:image" content="https://jose-compu.github.io/lacan-scan/assets/logo-pages-og.png" />
   <meta property="og:image:alt" content="Lacan Scan brand mark" />
@@ -156,7 +156,7 @@
     sarif_file: lacan.sarif
     category: lacan</code></pre>
       </div>
-      <p class="note">Full workflow (including <code>on:</code>, <code>permissions</code>, and <code>checkout</code> with <code>fetch-depth: 0</code>): <a href="workflows/lacan.yml">workflows/lacan.yml</a>. Pin Action <code>@v7</code> and binary <code>version: "7"</code> (or <code>"7.1.0"</code> for a fixed artifact). Earlier rule lines remain on <code>@v1</code>–<code>@v6</code>. Skip a false positive with <code>.lacan.toml</code> or <code># lacan:skip=AIS008:reason</code>. Experimental rules report and never fail the job.</p>
+      <p class="note">Full workflow (including <code>on:</code>, <code>permissions</code>, and <code>checkout</code> with <code>fetch-depth: 0</code>): <a href="workflows/lacan.yml">workflows/lacan.yml</a>. Pin Action <code>@v7</code> and binary <code>version: "7"</code> (or <code>"7.2.0"</code> for a fixed artifact). Earlier rule lines remain on <code>@v1</code>–<code>@v6</code>. Skip a false positive with <code>.lacan.toml</code> or <code># lacan:skip=AIS008:reason</code>. Experimental rules report and never fail the job.</p>
       <p class="aside">
         <img class="badge" src="assets/logo-action-badge.png" alt="Lacan Scan badge" width="280" />
       </p>
@@ -221,7 +221,7 @@ lacan scan . --skip-rules AIS102</code></pre>
           <tr><th>Major</th><th>Action</th><th>Highlights</th></tr>
         </thead>
         <tbody>
-          <tr><td>v7</td><td><code>@v7</code></td><td>7.2.0 experimental AIS104; 7.1.0 experimental AIS002; 7.0.0 AIS301 flow</td></tr>
+          <tr><td>v7</td><td><code>@v7</code></td><td>7.2.0 experimental AIS104; 7.2.0 experimental AIS002; 7.0.0 AIS301 flow</td></tr>
           <tr><td>v6</td><td><code>@v6</code></td><td>6.1.0 adds experimental AIS107, AIS110, AIS205–207, AIS211; 6.0.0 shipped AIS208–210, AIS304</td></tr>
           <tr><td>v5</td><td><code>@v5</code></td><td>AIS106 / AIS108 / AIS109; crates.io <code>lacan-scan</code></td></tr>
           <tr><td>v4</td><td><code>@v4</code></td><td><code>.lacan.toml</code> and inline skip comments</td></tr>
