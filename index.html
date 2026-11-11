@@ -6,7 +6,7 @@
   <title>Lacan Scan — AI safety scanner for Git | GitHub Action &amp; CLI</title>
   <link rel="canonical" href="https://jose-compu.github.io/lacan-scan/" />
   <link rel="alternate" type="text/plain" title="llms.txt" href="https://jose-compu.github.io/lacan-scan/llms.txt" />
-  <meta name="description" content="Lacan Scan is a static AI-safety scanner for Git repositories. Install the GitHub Action jose-compu/lacan-scan@v7 for SARIF code scanning, or the lacan CLI from crates.io. Current release v7.1.0." />
+  <meta name="description" content="Lacan Scan is a static AI-safety scanner for Git repositories. Install the GitHub Action jose-compu/lacan-scan@v7 for SARIF code scanning, or the lacan CLI from crates.io. Current release v7.2.0." />
   <meta name="keywords" content="Lacan Scan, lacan-scan, lacan, AI safety, GitHub Action, SARIF, static analysis, agent security, AIS301, AIS002, crates.io" />
   <meta name="author" content="jose-compu" />
   <meta name="robots" content="index, follow, max-image-preview:large" />
@@ -57,10 +57,10 @@
         "alternateName": ["lacan-scan", "lacan"],
         "applicationCategory": "DeveloperApplication",
         "operatingSystem": "Linux, macOS",
-        "softwareVersion": "7.1.0",
+        "softwareVersion": "7.2.0",
         "license": "https://www.apache.org/licenses/LICENSE-2.0",
         "url": "https://jose-compu.github.io/lacan-scan/",
-        "downloadUrl": "https://github.com/jose-compu/lacan-scan/releases/tag/v7.1.0",
+        "downloadUrl": "https://github.com/jose-compu/lacan-scan/releases/tag/v7.2.0",
         "installUrl": "https://jose-compu.github.io/lacan-scan/install-action.md",
         "codeRepository": "https://github.com/jose-compu/lacan-scan",
         "description": "Static AI-safety scanner for Git repos. Composite GitHub Action jose-compu/lacan-scan@v7 emits SARIF for code scanning. CLI binary lacan from crates.io package lacan-scan.",
@@ -119,12 +119,12 @@
     <h1 class="sr-only">Lacan Scan</h1>
     <img class="mark" src="assets/logo-readme.png" alt="Lacan Scan" width="420" />
     <p class="tag">Analyseur de sécurité IA pour dépôts Git</p>
-    <p class="lede">File-trace static scanning for AI and agent risk patterns. Crisp CLI and composite GitHub Action with SARIF output. Current release: <strong>v7.1.0</strong> (<code>@v7</code>) — AIS301 flow plus experimental AIS002 workflow AI chain.</p>
+    <p class="lede">File-trace static scanning for AI and agent risk patterns. Crisp CLI and composite GitHub Action with SARIF output. Current release: <strong>v7.2.0</strong> (<code>@v7</code>) — AIS301 flow, experimental AIS002 and AIS104.</p>
     <p class="cta">
       <a class="btn" href="#install-action">Install Action</a>
       <a class="btn btn-ghost" href="https://github.com/marketplace/actions/lacan-scan">Marketplace</a>
       <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan">Repository</a>
-      <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/releases/tag/v7.1.0">Download v7.1.0</a>
+      <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/releases/tag/v7.2.0">Download v7.2.0</a>
     </p>
     <p class="agent-links">Agents: <a href="llms.txt">llms.txt</a> · <a href="install-action.md">install playbook</a> · <a href="workflows/lacan.yml">workflow YAML</a></p>
   </header>
@@ -188,6 +188,7 @@ lacan scan . --skip-rules AIS102</code></pre>
         <tbody>
           <tr><td><code>AIS301</code></td><td>HIGH</td><td>Same Python or TypeScript function: an LLM value reaches eval, exec, or a shell. Parsing is this check only.</td></tr>
           <tr><td><code>AIS002</code></td><td>CRITICAL, experimental</td><td>Untrusted CI input reaches an AI step in a job with secrets or write permissions (never fails the job)</td></tr>
+          <tr><td><code>AIS104</code></td><td>MEDIUM, experimental</td><td>Retrieved or user data reaches a system prompt in the same function (never fails the job)</td></tr>
         </tbody>
       </table>
     </section>
@@ -220,7 +221,7 @@ lacan scan . --skip-rules AIS102</code></pre>
           <tr><th>Major</th><th>Action</th><th>Highlights</th></tr>
         </thead>
         <tbody>
-          <tr><td>v7</td><td><code>@v7</code></td><td>7.1.0 experimental AIS002; 7.0.0 AIS301 same-function LLM-to-shell flow</td></tr>
+          <tr><td>v7</td><td><code>@v7</code></td><td>7.2.0 experimental AIS104; 7.1.0 experimental AIS002; 7.0.0 AIS301 flow</td></tr>
           <tr><td>v6</td><td><code>@v6</code></td><td>6.1.0 adds experimental AIS107, AIS110, AIS205–207, AIS211; 6.0.0 shipped AIS208–210, AIS304</td></tr>
           <tr><td>v5</td><td><code>@v5</code></td><td>AIS106 / AIS108 / AIS109; crates.io <code>lacan-scan</code></td></tr>
           <tr><td>v4</td><td><code>@v4</code></td><td><code>.lacan.toml</code> and inline skip comments</td></tr>
