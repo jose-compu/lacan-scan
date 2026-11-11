@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://jose-compu.github.io/lacan-scan/sitemap.xml
+# Agentic discovery
+# llms.txt: https://jose-compu.github.io/lacan-scan/llms.txt
+# Action install playbook: https://jose-compu.github.io/lacan-scan/install-action.md

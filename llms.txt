@@ -1,0 +1,49 @@
+# Lacan Scan
+
+> Static AI-safety scanner for Git repositories. CLI binary `lacan`, Cargo package `lacan-scan`, GitHub Action `jose-compu/lacan-scan@v7`. Emits SARIF for GitHub code scanning.
+
+Current release: v7.1.0 (floating Action tag @v7, binary version input "7" or "7.1.0").
+License: Apache-2.0
+Site: https://jose-compu.github.io/lacan-scan/
+Repository: https://github.com/jose-compu/lacan-scan
+Marketplace: https://github.com/marketplace/actions/lacan-scan
+crates.io: https://crates.io/crates/lacan-scan
+
+## For coding agents — install the GitHub Action (preferred)
+
+Do this when the user asks to add Lacan Scan, lacan-scan, or an AI-safety CI gate.
+
+1. Create the file `.github/workflows/lacan.yml` in the target repository.
+2. Write exactly the contents of https://jose-compu.github.io/lacan-scan/workflows/lacan.yml
+   (or follow the copy-paste block in https://jose-compu.github.io/lacan-scan/install-action.md).
+3. Commit and open a PR if the repo requires review. Do not force-push main.
+4. Ensure the default branch allows the workflow permissions:
+   - contents: read
+   - security-events: write (required to upload SARIF to code scanning)
+5. Optional: add a root `.lacan.toml` only if the user wants skip-rules or path ignores.
+6. Verify: after merge, the workflow run should appear under Actions; SARIF goes to Security → Code scanning (not as a downloadable artifact).
+
+Pin rules:
+- Action ref: jose-compu/lacan-scan@v7 (tracks v7.*)
+- Binary input version: "7" (floating major) or "7.1.0" (fixed)
+- For pull_request changed-only scans, checkout with fetch-depth: 0
+
+Do not invent other Action names. The package on crates.io is lacan-scan; the CLI binary is lacan.
+
+## CLI install (no GitHub Actions)
+
+```bash
+cargo install lacan-scan --locked
+lacan --version
+lacan scan . --fail-on HIGH
+```
+
+Or download lacan-<triple>.tar.gz from https://github.com/jose-compu/lacan-scan/releases and verify the .sha256 file.
+
+## Optional docs
+
+- Human site: https://jose-compu.github.io/lacan-scan/
+- Agent install playbook: https://jose-compu.github.io/lacan-scan/install-action.md
+- Ready workflow YAML: https://jose-compu.github.io/lacan-scan/workflows/lacan.yml
+- Full README: https://github.com/jose-compu/lacan-scan/blob/main/README.md
+- Roadmap: https://github.com/jose-compu/lacan-scan/blob/main/ROADMAP.md

@@ -3,15 +3,26 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Lacan Scan — AI safety scanner for Git</title>
+  <title>Lacan Scan — AI safety scanner for Git | GitHub Action &amp; CLI</title>
   <link rel="canonical" href="https://jose-compu.github.io/lacan-scan/" />
-  <meta name="description" content="Static AI-safety scanner for Git repositories. CLI lacan 7.1.0 · GitHub Action jose-compu/lacan-scan@v7 · crates.io lacan-scan · SARIF for code scanning." />
-  <meta property="og:title" content="Lacan Scan" />
-  <meta property="og:description" content="Analyseur de sécurité IA pour dépôts Git" />
+  <link rel="alternate" type="text/plain" title="llms.txt" href="https://jose-compu.github.io/lacan-scan/llms.txt" />
+  <meta name="description" content="Lacan Scan is a static AI-safety scanner for Git repositories. Install the GitHub Action jose-compu/lacan-scan@v7 for SARIF code scanning, or the lacan CLI from crates.io. Current release v7.1.0." />
+  <meta name="keywords" content="Lacan Scan, lacan-scan, lacan, AI safety, GitHub Action, SARIF, static analysis, agent security, AIS301, AIS002, crates.io" />
+  <meta name="author" content="jose-compu" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta name="application-name" content="Lacan Scan" />
+  <meta property="og:site_name" content="Lacan Scan" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="Lacan Scan — AI safety scanner for Git" />
+  <meta property="og:description" content="Static AI-safety scanner. GitHub Action jose-compu/lacan-scan@v7 with SARIF, or cargo install lacan-scan. Release v7.1.0." />
   <meta property="og:url" content="https://jose-compu.github.io/lacan-scan/" />
   <meta property="og:image" content="https://jose-compu.github.io/lacan-scan/assets/logo-pages-og.png" />
+  <meta property="og:image:alt" content="Lacan Scan brand mark" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Lacan Scan — AI safety scanner for Git" />
+  <meta name="twitter:description" content="Install jose-compu/lacan-scan@v7 for SARIF code scanning, or cargo install lacan-scan." />
+  <meta name="twitter:image" content="https://jose-compu.github.io/lacan-scan/assets/logo-pages-og.png" />
   <meta name="theme-color" content="#2E4A3F" />
   <link rel="icon" href="assets/logo-action-icon.png" type="image/png" />
   <link rel="apple-touch-icon" href="assets/logo-action.png" />
@@ -19,73 +30,170 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://jose-compu.github.io/lacan-scan/#website",
+        "url": "https://jose-compu.github.io/lacan-scan/",
+        "name": "Lacan Scan",
+        "description": "Static AI-safety scanner for Git repositories. GitHub Action and lacan CLI.",
+        "inLanguage": "en",
+        "publisher": { "@id": "https://jose-compu.github.io/lacan-scan/#org" }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://jose-compu.github.io/lacan-scan/#org",
+        "name": "jose-compu",
+        "url": "https://github.com/jose-compu",
+        "logo": "https://jose-compu.github.io/lacan-scan/assets/logo-action.png"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://jose-compu.github.io/lacan-scan/#app",
+        "name": "Lacan Scan",
+        "alternateName": ["lacan-scan", "lacan"],
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Linux, macOS",
+        "softwareVersion": "7.1.0",
+        "license": "https://www.apache.org/licenses/LICENSE-2.0",
+        "url": "https://jose-compu.github.io/lacan-scan/",
+        "downloadUrl": "https://github.com/jose-compu/lacan-scan/releases/tag/v7.1.0",
+        "installUrl": "https://jose-compu.github.io/lacan-scan/install-action.md",
+        "codeRepository": "https://github.com/jose-compu/lacan-scan",
+        "description": "Static AI-safety scanner for Git repos. Composite GitHub Action jose-compu/lacan-scan@v7 emits SARIF for code scanning. CLI binary lacan from crates.io package lacan-scan.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": { "@id": "https://jose-compu.github.io/lacan-scan/#org" }
+      },
+      {
+        "@type": "HowTo",
+        "@id": "https://jose-compu.github.io/lacan-scan/#howto-action",
+        "name": "Install Lacan Scan GitHub Action",
+        "description": "Add jose-compu/lacan-scan@v7 so pull requests and main pushes get an AI-safety scan with SARIF upload.",
+        "totalTime": "PT5M",
+        "tool": [
+          { "@type": "HowToTool", "name": "GitHub Actions" },
+          { "@type": "HowToTool", "name": "jose-compu/lacan-scan@v7" }
+        ],
+        "step": [
+          {
+            "@type": "HowToStep",
+            "position": 1,
+            "name": "Create the workflow file",
+            "text": "Create .github/workflows/lacan.yml in the target repository."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 2,
+            "name": "Paste the recommended workflow",
+            "text": "Copy https://jose-compu.github.io/lacan-scan/workflows/lacan.yml verbatim into that file."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 3,
+            "name": "Commit and merge",
+            "text": "Commit on a feature branch, open a pull request if required, and merge to the default branch."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 4,
+            "name": "Confirm code scanning",
+            "text": "After a successful run, open Security → Code scanning for category lacan."
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
   <div class="grain" aria-hidden="true"></div>
+  <a class="skip" href="#main">Skip to content</a>
   <header class="hero">
+    <h1 class="sr-only">Lacan Scan</h1>
     <img class="mark" src="assets/logo-readme.png" alt="Lacan Scan" width="420" />
     <p class="tag">Analyseur de sécurité IA pour dépôts Git</p>
-    <p class="lede">File-trace static scanning for AI/agent risk patterns. Crisp CLI and composite GitHub Action with SARIF output. Current release: <strong>v7.1.0</strong> (<code>@v7</code>) — AIS301 flow plus experimental AIS002 workflow AI chain.</p>
+    <p class="lede">File-trace static scanning for AI and agent risk patterns. Crisp CLI and composite GitHub Action with SARIF output. Current release: <strong>v7.1.0</strong> (<code>@v7</code>) — AIS301 flow plus experimental AIS002 workflow AI chain.</p>
     <p class="cta">
-      <a class="btn" href="https://github.com/jose-compu/lacan-scan">Repository</a>
-      <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/blob/main/README.md">README</a>
+      <a class="btn" href="#install-action">Install Action</a>
+      <a class="btn btn-ghost" href="https://github.com/marketplace/actions/lacan-scan">Marketplace</a>
+      <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan">Repository</a>
       <a class="btn btn-ghost" href="https://github.com/jose-compu/lacan-scan/releases/tag/v7.1.0">Download v7.1.0</a>
     </p>
+    <p class="agent-links">Agents: <a href="llms.txt">llms.txt</a> · <a href="install-action.md">install playbook</a> · <a href="workflows/lacan.yml">workflow YAML</a></p>
   </header>
 
-  <main>
-    <section>
-      <h2>Install</h2>
-      <p class="prose">Install with <code>cargo install lacan-scan --locked</code>, or download <code>lacan-&lt;triple&gt;.tar.gz</code> from <a href="https://github.com/jose-compu/lacan-scan/releases/latest">Releases</a> (verify <code>.sha256</code>). Or build from source with <a href="https://crisp-lang.org/">Crisp 1.11.1+</a>.</p>
-    </section>
-
-    <section>
-      <h2>GitHub Action</h2>
+  <main id="main">
+    <section id="install-action" aria-labelledby="install-action-heading">
+      <h2 id="install-action-heading">Install the GitHub Action</h2>
+      <p class="prose">Preferred path for repositories on GitHub. Marketplace listing: <a href="https://github.com/marketplace/actions/lacan-scan">lacan-scan</a>. Coding agents: follow <a href="install-action.md">install-action.md</a> and write the file below to <code>.github/workflows/lacan.yml</code> without inventing another Action name.</p>
+      <ol class="steps">
+        <li>Create <code>.github/workflows/lacan.yml</code>.</li>
+        <li>Paste the workflow from <a href="workflows/lacan.yml">workflows/lacan.yml</a> (shown below).</li>
+        <li>Commit and merge. Keep <code>permissions.security-events: write</code> so SARIF can upload.</li>
+        <li>Confirm the run under Actions, then Security → Code scanning (category <code>lacan</code>).</li>
+      </ol>
       <div class="action-row">
         <img class="action-mark" src="assets/logo-action.png" alt="Lacan Scan Action mark" width="112" height="112" />
         <pre><code>- uses: jose-compu/lacan-scan@v7
   with:
     path: .
     fail-on: HIGH
-    output: sarif
+    output: sarif,cli
     sarif-file: lacan.sarif
     version: "7"
-    changed-only: "true"
+    changed-only: ${{ github.event_name == 'pull_request' }}
     changed-base: ${{ github.event.pull_request.base.sha }}
 - uses: github/codeql-action/upload-sarif@v4
-  if: always()
+  if: always() &amp;&amp; hashFiles('lacan.sarif') != ''
   with:
     sarif_file: lacan.sarif
     category: lacan</code></pre>
       </div>
-      <p class="note">PR jobs need sufficient <code>fetch-depth</code> so <code>changed-base</code> resolves. Pin <code>version: "7.1.0"</code> for a fixed binary; use <code>@v1</code>–<code>@v6</code> for earlier rule lines. Skip a false positive with <code>.lacan.toml</code> or <code># lacan:skip=AIS008:reason</code>. Experimental rules on <code>@v6</code> (<code>AIS107</code>, <code>AIS110</code>, <code>AIS205</code>–<code>AIS209</code>, <code>AIS211</code>) report but never fail the job.</p>
+      <p class="note">Full workflow (including <code>on:</code>, <code>permissions</code>, and <code>checkout</code> with <code>fetch-depth: 0</code>): <a href="workflows/lacan.yml">workflows/lacan.yml</a>. Pin Action <code>@v7</code> and binary <code>version: "7"</code> (or <code>"7.1.0"</code> for a fixed artifact). Earlier rule lines remain on <code>@v1</code>–<code>@v6</code>. Skip a false positive with <code>.lacan.toml</code> or <code># lacan:skip=AIS008:reason</code>. Experimental rules report and never fail the job.</p>
       <p class="aside">
         <img class="badge" src="assets/logo-action-badge.png" alt="Lacan Scan badge" width="280" />
       </p>
     </section>
 
-    <section>
-      <h2>CLI</h2>
+    <section id="install-cli" aria-labelledby="install-cli-heading">
+      <h2 id="install-cli-heading">Install the CLI</h2>
+      <p class="prose">Package name on crates.io is <code>lacan-scan</code>. The binary is <code>lacan</code>.</p>
+      <pre><code>cargo install lacan-scan --locked
+lacan --version
+lacan scan . --fail-on HIGH</code></pre>
+      <p class="prose">Or download <code>lacan-&lt;triple&gt;.tar.gz</code> from <a href="https://github.com/jose-compu/lacan-scan/releases/latest">Releases</a>, verify the <code>.sha256</code>, and put <code>lacan</code> on your <code>PATH</code>. Source builds need <a href="https://crisp-lang.org/">Crisp 1.11.1+</a>.</p>
+    </section>
+
+    <section id="cli" aria-labelledby="cli-heading">
+      <h2 id="cli-heading">CLI usage</h2>
       <pre><code>lacan scan . --fail-on HIGH --output cli,sarif
 lacan scan . --changed-only origin/main --fail-on HIGH
 lacan scan . --skip-rules AIS102</code></pre>
       <p class="prose">Optional hook: <code>scripts/pre-commit-lacan.sh</code> (requires <code>lacan</code> on <code>PATH</code>). Drop <code>.lacan.toml</code> in the repo to skip rules or paths.</p>
     </section>
 
-    <section>
-      <h2>v7 detectors</h2>
+    <section id="detectors-v7" aria-labelledby="detectors-v7-heading">
+      <h2 id="detectors-v7-heading">v7 detectors</h2>
       <table class="releases">
         <thead>
           <tr><th>Rule</th><th>Severity</th><th>Detects</th></tr>
         </thead>
         <tbody>
           <tr><td><code>AIS301</code></td><td>HIGH</td><td>Same Python or TypeScript function: an LLM value reaches eval, exec, or a shell. Parsing is this check only.</td></tr>
+          <tr><td><code>AIS002</code></td><td>CRITICAL, experimental</td><td>Untrusted CI input reaches an AI step in a job with secrets or write permissions (never fails the job)</td></tr>
         </tbody>
       </table>
     </section>
 
-    <section>
-      <h2>v6 detectors</h2>
+    <section id="detectors-v6" aria-labelledby="detectors-v6-heading">
+      <h2 id="detectors-v6-heading">v6 detectors</h2>
       <table class="releases">
         <thead>
           <tr><th>Rule</th><th>Severity</th><th>Detects</th></tr>
@@ -105,8 +213,8 @@ lacan scan . --skip-rules AIS102</code></pre>
       </table>
     </section>
 
-    <section>
-      <h2>Release lines</h2>
+    <section id="releases" aria-labelledby="releases-heading">
+      <h2 id="releases-heading">Release lines</h2>
       <table class="releases">
         <thead>
           <tr><th>Major</th><th>Action</th><th>Highlights</th></tr>
@@ -138,7 +246,7 @@ lacan scan . --skip-rules AIS102</code></pre>
 
   <footer>
     <p>SÉCURITÉ · TRANSPARENCE · CONFIANCE</p>
-    <p><a href="https://github.com/jose-compu/lacan-scan">jose-compu/lacan-scan</a> · Apache-2.0</p>
+    <p><a href="https://github.com/jose-compu/lacan-scan">jose-compu/lacan-scan</a> · Apache-2.0 · <a href="llms.txt">llms.txt</a> · <a href="robots.txt">robots.txt</a> · <a href="sitemap.xml">sitemap</a></p>
   </footer>
 </body>
 </html>
