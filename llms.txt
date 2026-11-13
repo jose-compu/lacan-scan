@@ -2,7 +2,7 @@
 
 > Static AI-safety scanner for Git repositories. CLI binary `lacan`, Cargo package `lacan-scan`, GitHub Action `jose-compu/lacan-scan@v7`. Emits SARIF for GitHub code scanning.
 
-Current release: v7.2.0 (floating Action tag @v7, binary version input "7" or "7.2.0").
+Current release: v7.2.1 (floating Action tag @v7, binary version input "7" or "7.2.1").
 License: Apache-2.0
 Site: https://jose-compu.github.io/lacan-scan/
 Repository: https://github.com/jose-compu/lacan-scan
@@ -25,7 +25,7 @@ Do this when the user asks to add Lacan Scan, lacan-scan, or an AI-safety CI gat
 
 Pin rules:
 - Action ref: jose-compu/lacan-scan@v7 (tracks v7.*)
-- Binary input version: "7" (floating major) or "7.2.0" (fixed)
+- Binary input version: "7" (floating major) or "7.2.1" (fixed)
 - For pull_request changed-only scans, checkout with fetch-depth: 0
 
 Do not invent other Action names. The package on crates.io is lacan-scan; the CLI binary is lacan.
