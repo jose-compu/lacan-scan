@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  LinkedIn share banner template for Lacan Scan releases.
+  Canvas: 1584 x 396 (LinkedIn cover / wide post banner).
+
+  Copy this file into assets/brand/linkedin-banners/, replace the
+  __PLACEHOLDERS__, render a PNG locally. Do not commit filled banners;
+  only this template belongs in the repository.
+
+  Placeholders:
+    __VERSION__      e.g. 7.2.1
+    __HEADLINE__     one short benefit line
+    __BENEFIT_1__    short benefit
+    __BENEFIT_2__    short benefit
+    __BENEFIT_3__    short benefit
+    __ACTION_REF__   e.g. jose-compu/lacan-scan@v7
+    __VERSION_PIN__  e.g. "7" or "7.2.1"
+
+  Mark: logo-linkedin.png (oval on exact ivory #f1e0c4, no rectangular halo).
+
+  Render (from repo root), then composite the mark (librsvg may skip external PNGs):
+    rsvg-convert -w 1584 -h 396 -o assets/brand/linkedin-banners/vVERSION.png \
+      assets/brand/linkedin-banners/vVERSION.svg
+    magick assets/brand/linkedin-banners/vVERSION.png \
+      \( assets/brand/logo-linkedin.png -resize 200x235 \) \
+      -gravity East -geometry +48+0 -compose over -composite \
+      assets/brand/linkedin-banners/vVERSION.png
+
+  Colors: ivory #f1e0c4, vert #2e4a3f, or #c9a96a.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="1584" height="396" viewBox="0 0 1584 396" role="img"
+     aria-labelledby="banner-title banner-desc">
+  <title id="banner-title">Lacan Scan __VERSION__</title>
+  <desc id="banner-desc">__HEADLINE__. GitHub Action __ACTION_REF__.</desc>
+
+  <rect width="1584" height="396" fill="#f1e0c4"/>
+  <rect x="18" y="18" width="1548" height="360" fill="none" stroke="#2e4a3f" stroke-width="2"/>
+  <rect x="28" y="28" width="1528" height="340" fill="none" stroke="#2e4a3f" stroke-width="0.6"/>
+  <line x1="56" y1="78" x2="820" y2="78" stroke="#2e4a3f" stroke-width="0.8"/>
+  <line x1="56" y1="84" x2="520" y2="84" stroke="#c9a96a" stroke-width="3"/>
+
+  <image x="1310" y="80" width="200" height="235" preserveAspectRatio="xMidYMid meet"
+         xlink:href="logo-linkedin.png"/>
+
+  <text x="56" y="64" fill="#2e4a3f"
+        font-family="Georgia, 'Times New Roman', serif" font-size="28" letter-spacing="1.4">LACAN SCAN __VERSION__</text>
+
+  <text x="56" y="128" fill="#24382f"
+        font-family="Georgia, 'Times New Roman', serif" font-size="26">__HEADLINE__</text>
+
+  <text x="56" y="176" fill="#2e4a3f"
+        font-family="Georgia, 'Times New Roman', serif" font-size="18">-  __BENEFIT_1__</text>
+  <text x="56" y="210" fill="#2e4a3f"
+        font-family="Georgia, 'Times New Roman', serif" font-size="18">-  __BENEFIT_2__</text>
+  <text x="56" y="244" fill="#2e4a3f"
+        font-family="Georgia, 'Times New Roman', serif" font-size="18">-  __BENEFIT_3__</text>
+
+  <text x="56" y="300" fill="#2e4a3f"
+        font-family="Georgia, 'Times New Roman', serif" font-size="16" letter-spacing="0.8">GITHUB ACTION</text>
+  <text x="56" y="330" fill="#24382f"
+        font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">__ACTION_REF__</text>
+  <text x="56" y="360" fill="#5c6e64"
+        font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15">- uses: __ACTION_REF__    with: version: __VERSION_PIN__  fail-on: HIGH  output: sarif</text>
+</svg>
