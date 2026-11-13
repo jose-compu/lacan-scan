@@ -17,8 +17,11 @@
     __VERSION_PIN__  e.g. "7" or "7.2.1"
 
   Mark: logo-linkedin.png (oval on exact ivory #f1e0c4, no rectangular halo).
+  When copying this file into linkedin-banners/, set the <image> href to
+  ../logo-linkedin.png. The PNG mark is applied by the magick step below;
+  do not skip that step (librsvg often skips external PNGs).
 
-  Render (from repo root), then composite the mark (librsvg may skip external PNGs):
+  Render (from repo root), then composite the mark:
     rsvg-convert -w 1584 -h 396 -o assets/brand/linkedin-banners/vVERSION.png \
       assets/brand/linkedin-banners/vVERSION.svg
     magick assets/brand/linkedin-banners/vVERSION.png \
