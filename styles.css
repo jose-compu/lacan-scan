@@ -229,3 +229,6 @@ footer a { color: var(--vert); }
   .motifs { grid-template-columns: 1fr; max-width: 220px; margin-left: auto; margin-right: auto; }
   .action-row { justify-content: center; }
 }
+
+.chart { margin: 1.25rem 0 0; }
+.chart svg { width: 100%; height: auto; display: block; }
