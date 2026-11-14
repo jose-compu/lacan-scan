@@ -63,7 +63,7 @@ jobs:
 | Input | Default | Meaning |
 | --- | --- | --- |
 | `path` | `.` | Directory or file to scan |
-| `version` | `7` | Release binary without leading `v`. Use `7` for the current major or `7.1.0` to pin |
+| `version` | `7` | Release binary without leading `v`. Use `7` for the current major or `7.2.2` to pin |
 | `fail-on` | `HIGH` | Minimum severity that fails the job (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`) |
 | `output` | `sarif` | Comma-separated: `cli`, `json`, `sarif`, `junit` |
 | `sarif-file` | `lacan.sarif` | SARIF path when `sarif` is in `output` |
