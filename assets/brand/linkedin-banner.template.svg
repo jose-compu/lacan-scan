@@ -28,7 +28,10 @@
   ../logo-linkedin.png. The PNG mark is applied by the magick step below;
   do not skip that step (librsvg often skips external PNGs).
 
-  Render (from repo root), then composite the mark:
+  Or render from the repo root with ./assets/brand/render-linkedin-banner.sh
+  (see script header for VERSION, HEADLINE, and benefit env vars).
+
+  Render manually (from repo root), then composite the mark:
     rsvg-convert -w 1200 -h 480 -o assets/brand/linkedin-banners/vVERSION.png \
       assets/brand/linkedin-banners/vVERSION.svg
     magick assets/brand/linkedin-banners/vVERSION.png \
