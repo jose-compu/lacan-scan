@@ -566,7 +566,10 @@ mod tests {
         let over = dir.join("over.safetensors");
         let mut f = fs::File::create(&over).unwrap();
         f.write_all(&20_000_000u64.to_le_bytes()).unwrap();
-        assert_eq!(safetensors_header_issue(&over.to_string_lossy()), "oversize");
+        assert_eq!(
+            safetensors_header_issue(&over.to_string_lossy()),
+            "oversize"
+        );
         let _ = fs::remove_dir_all(&dir);
     }
 
@@ -576,7 +579,8 @@ mod tests {
         assert_eq!(chat_template_issue(branch), "branch");
         assert_eq!(chat_template_issue("Hello {{ name }}\n"), "ok");
         assert_eq!(chat_template_issue("{% if\n"), "malformed");
-        let budget = "{% for i in range(100000) %}{% for j in range(100000) %}x{% endfor %}{% endfor %}\n";
+        let budget =
+            "{% for i in range(100000) %}{% for j in range(100000) %}x{% endfor %}{% endfor %}\n";
         assert_eq!(chat_template_issue(budget), "budget");
     }
 

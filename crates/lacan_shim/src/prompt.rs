@@ -212,10 +212,7 @@ fn system_assign_sink(node: Node, src: &[u8], tainted: &HashSet<String>) -> Opti
     if !reaches_untrusted(rhs, src, tainted) {
         return None;
     }
-    if assigned_names(node, src)
-        .iter()
-        .any(|n| is_system_name(n))
-    {
+    if assigned_names(node, src).iter().any(|n| is_system_name(n)) {
         Some(node.start_position().row as i64 + 1)
     } else {
         None
@@ -354,6 +351,9 @@ def build(docs):
 
     #[test]
     fn markdown_ignored() {
-        assert_eq!(prompt_sink_line("notes.md", "system_prompt = retrieve()\n"), 0);
+        assert_eq!(
+            prompt_sink_line("notes.md", "system_prompt = retrieve()\n"),
+            0
+        );
     }
 }
