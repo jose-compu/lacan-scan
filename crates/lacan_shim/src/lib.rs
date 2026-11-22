@@ -404,6 +404,11 @@ fn line_zwj_allowed(line: &str) -> bool {
 /// First line with invisible / bidi / tag-block Unicode, or 0.
 pub fn find_invisible_line(text: &str) -> i64 {
     for (idx, line) in text.lines().enumerate() {
+        let line = if idx == 0 {
+            line.strip_prefix('\u{feff}').unwrap_or(line)
+        } else {
+            line
+        };
         let mut saw_zwj = false;
         let mut other_invisible = false;
         for ch in line.chars() {
@@ -1094,6 +1099,16 @@ mod tests {
         assert_eq!(find_invisible_line(emoji), 0);
         let family = "\u{1f468}\u{200d}\u{1f469}\u{200d}\u{1f467}\n";
         assert_eq!(find_invisible_line(family), 0);
+    }
+
+    #[test]
+    fn find_invisible_line_bom_cases() {
+        assert_eq!(find_invisible_line("\u{feff}<?xml version=\"1.0\"?>\n"), 0);
+        assert_eq!(find_invisible_line("\u{feff}"), 0);
+        assert_eq!(find_invisible_line("a\u{feff}b\n"), 1);
+        assert_eq!(find_invisible_line("ok\n\u{feff}no\n"), 2);
+        assert_eq!(find_invisible_line("\u{feff}plain \u{202e} text\n"), 1);
+        assert_eq!(find_invisible_line("\u{feff}\u{feff}x\n"), 1);
     }
 
     #[test]

@@ -363,6 +363,12 @@ test "ais101 emoji zwj clean" = {
     assert_eq(len(fs), 0)
 }
 
+test "ais101 utf8 bom clean" = {
+    text := read_text("../../fixtures/AIS101/pass/bom.csproj", 100000)
+    fs := ais101("bom.csproj", text)
+    assert_eq(len(fs), 0)
+}
+
 test "ais101 split identifier zwj" = {
     text := read_text("../../fixtures/AIS101/fail/split.md", 100000)
     fs := ais101("split.md", text)
