@@ -235,7 +235,7 @@ All v1 and v2 rules remain enabled by default. See prior release notes for rule 
 
 No new rules. Same `@v7` line. One HIGH false positive.
 
-AIS008 no longer treats a one-way `echo` to `/dev/tcp/127.0.0.1`, `/dev/tcp/localhost`, or `/dev/tcp/::1` as a reverse shell. That is the usual container port probe. An interactive shell, a `0>&` or `0<&` redirect, or `exec N<>/dev/tcp/…` stays HIGH, including when the host is loopback. `echo` to any other host stays HIGH. `nc -e`, `ncat -e`, and curl or wget piped to a shell are unchanged, including the rustup, cargo-dist, uv, and Ollama allowlists. Fixes [#108](https://github.com/jose-compu/lacan-scan/issues/108).
+AIS008 no longer treats the usual container one-way `echo` loopback port probe as a reverse shell (127.0.0.1, localhost, or IPv6 loopback). Interactive shells, bidirectional redirects, and probes to other hosts stay HIGH, including on loopback. `nc -e`, `ncat -e`, and curl or wget piped to a shell are unchanged, including the rustup, cargo-dist, uv, and Ollama allowlists. Fixes [#108](https://github.com/jose-compu/lacan-scan/issues/108).
 
 ### v7.6.3
 

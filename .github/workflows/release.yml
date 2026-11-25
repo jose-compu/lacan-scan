@@ -115,7 +115,7 @@ jobs:
 
             No new rules. Same @v7 line. One HIGH false positive.
 
-            A localhost port probe is no longer a reverse-shell finding. `echo` written to `/dev/tcp/127.0.0.1`, `/dev/tcp/localhost`, or `/dev/tcp/::1` is clean in any file. An interactive shell on `/dev/tcp/`, a bidirectional `exec N<>/dev/tcp/…`, and `echo` to any other host stay HIGH. Pipe-to-shell and the existing installer allowlists are unchanged. Fixes #108.
+            A localhost port probe is no longer a reverse-shell finding. A one-way echo loopback readiness check (127.0.0.1, localhost, or IPv6 loopback) is clean in any file. Interactive shells, bidirectional redirects, and echo probes to other hosts stay HIGH. Pipe-to-shell and the existing installer allowlists are unchanged. Fixes #108.
 
             ## GitHub Action
             ```yaml
