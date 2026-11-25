@@ -3,7 +3,7 @@
 use finding { Finding, Severity, make_finding, has_skip, concat_findings }
 use lacan_shim {
     re_find_line, re_is_match, str_contains, str_starts_with, path_basename, str_ends_with, str_to_lower, path_extension,
-    split_lines, gha_step_item_line, read_text, pipe_line_trusted
+    split_lines, gha_step_item_line, read_text, pipe_line_trusted, pipe_line_doc_installer
 }
 
 -- AIS002 helpers. Crisp string interpolation forbids `{` in double-quoted
@@ -345,14 +345,23 @@ pub ais004(path, text) -> vec<Finding> = {
     }
 }
 
-ais008_first_untrusted_pipe(text, pattern) -> int = {
+ais008_doc_extension(path) = {
+    ext := str_to_lower(path_extension(path))
+    ext == "md" || ext == "mdx" || ext == "markdown" || ext == "rst" || ext == "txt" || ext == "ipynb" || ext == "rmd"
+}
+
+ais008_pipe_line_ok(line, path) = {
+    pipe_line_trusted(line) || (ais008_doc_extension(path) && pipe_line_doc_installer(line))
+}
+
+ais008_first_untrusted_pipe(text, pattern, path) -> int = {
     lines := split_lines(text)
     hit mut:= 0
     i mut:= 0
     while i < len(lines) && hit == 0 {
         line := lines[i]
         if re_is_match(pattern, line) {
-            if !pipe_line_trusted(line) {
+            if !ais008_pipe_line_ok(line, path) {
                 hit = i + 1
             }
         }
@@ -387,7 +396,7 @@ pub ais008(path, text) -> vec<Finding> = {
             }
             i = i + 1
         }
-        curl_line := ais008_first_untrusted_pipe(text, "curl[^\\n]*\\|\\s*(ba)?sh")
+        curl_line := ais008_first_untrusted_pipe(text, "curl[^\\n]*\\|\\s*(ba)?sh", path)
         if curl_line > 0 {
             push(out, make_finding(
                 "AIS008",
@@ -399,7 +408,7 @@ pub ais008(path, text) -> vec<Finding> = {
                 "Reverse-shell or pipe-to-shell primitive matched"
             ))
         }
-        wget_line := ais008_first_untrusted_pipe(text, "wget[^\\n]*\\|\\s*(ba)?sh")
+        wget_line := ais008_first_untrusted_pipe(text, "wget[^\\n]*\\|\\s*(ba)?sh", path)
         if wget_line > 0 {
             push(out, make_finding(
                 "AIS008",
@@ -541,6 +550,32 @@ test "ais008 decoy hosts stay high" = {
 test "ais008 rev shell unchanged" = {
     text := read_text("../../fixtures/AIS008/fail/rev.sh", 100000)
     fs := ais008("rev.sh", text)
+    assert_eq(len(fs) > 0, true)
+    assert_eq(fs[0].id, "AIS008")
+}
+
+test "ais008 uv installer clean in markdown doc" = {
+    text := read_text("../../fixtures/AIS008/pass/docs/uv-install.md", 100000)
+    fs := ais008("docs/uv-install.md", text)
+    assert_eq(len(fs), 0)
+}
+
+test "ais008 ollama installer clean in notebook" = {
+    text := read_text("../../fixtures/AIS008/pass/docs/ollama-install.ipynb", 100000)
+    fs := ais008("docs/ollama-install.ipynb", text)
+    assert_eq(len(fs), 0)
+}
+
+test "ais008 uv installer high in shell script" = {
+    text := read_text("../../fixtures/AIS008/fail/setup-uv.sh", 100000)
+    fs := ais008("scripts/setup-uv.sh", text)
+    assert_eq(len(fs) > 0, true)
+    assert_eq(fs[0].id, "AIS008")
+}
+
+test "ais008 non install astral url high in markdown" = {
+    text := read_text("../../fixtures/AIS008/fail/docs/astral-other.md", 100000)
+    fs := ais008("docs/astral-other.md", text)
     assert_eq(len(fs) > 0, true)
     assert_eq(fs[0].id, "AIS008")
 }
