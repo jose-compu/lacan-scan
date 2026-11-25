@@ -111,11 +111,11 @@ jobs:
           body: |
             AI-safety static scanner for Git repositories.
 
-            ## 7.6.2
+            ## 7.6.3
 
             No new rules. Same @v7 line. One HIGH false positive.
 
-            AIS101 no longer reports a file whose first character is U+FEFF (the UTF-8 byte order mark, bytes EF BB BF). Windows-authored project files such as .csproj and .sln were failing --fail-on HIGH on that marker alone. A U+FEFF after the first character, two leading U+FEFF characters, a zero-width space, a ZWJ inside an ASCII identifier, and bidi or tag characters stay HIGH. Fixes #91.
+            Documented official installers for uv and Ollama are no longer a pipe-to-shell finding when they appear in a doc or notebook (.md, .mdx, .markdown, .rst, .txt, .ipynb, .rmd). The only accepted URLs are https://astral.sh/uv/install.sh and https://ollama.com/install.sh. The same line in a shell script, a workflow, or any other file stays HIGH. Any other URL, a second URL on the line, and reverse-shell patterns stay HIGH. Rustup and cargo-dist installers are unchanged. Fixes #98.
 
             ## GitHub Action
             ```yaml
@@ -130,7 +130,7 @@ jobs:
                 changed-base: "<pull_request.base.sha>"
             ```
 
-            Floating major tag `v7` tracks the current release line (`v1`–`v6` remain for earlier rule sets). Pin `version: "7.6.2"` for a fixed binary. Drop `.lacan.toml` in the repo to skip false positives.
+            Floating major tag `v7` tracks the current release line (`v1`–`v6` remain for earlier rule sets). Pin `version: "7.6.3"` for a fixed binary. Drop `.lacan.toml` in the repo to skip false positives.
       # Keep floating major tags (v1, v2, …) for `uses: jose-compu/lacan-scan@v1`.
       - name: Update major version tag
         env:

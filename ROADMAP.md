@@ -218,6 +218,8 @@ Judge datasets and artifacts as a whole, not line by line. **Shipped in 6.0.0:**
 
 **7.6.0** adds experimental `AIS006` ([#10](https://github.com/jose-compu/lacan-scan/issues/10)): MCP config with unpinned `npx` / `uvx` / `pipx`, or a remote `url` / `command` / `mcp-remote` http(s) target in `mcp.json`, `.mcp.json`, or `claude_desktop_config.json`. Reported; does not fail the job.
 
+**7.6.3** narrows AIS008 in documentation files: official uv (`https://astral.sh/uv/install.sh`) and Ollama (`https://ollama.com/install.sh`) pipe-to-shell install lines in `.md`, `.mdx`, `.markdown`, `.rst`, `.txt`, `.ipynb`, and `.rmd` are not findings. The same URLs in scripts, workflows, or other extensions stay HIGH. Rustup and cargo-dist allowlists unchanged. No new rule ids. Fixes [#98](https://github.com/jose-compu/lacan-scan/issues/98).
+
 **7.6.2** narrows AIS101: a single leading U+FEFF (UTF-8 BOM) is not a finding. A later U+FEFF, a second leading U+FEFF, U+200B, identifier ZWJs, and bidi or tag characters stay HIGH. No new rule ids. Fixes [#91](https://github.com/jose-compu/lacan-scan/issues/91).
 
 **7.6.1** narrows two HIGH rules. AIS008 skips an allowlisted official installer line (`sh.rustup.rs` / `rustup.rs` / `www.rustup.rs`, and `github.com/axodotdev/cargo-dist/releases/download/`). AIS101 skips an isolated U+200D in prose and emoji ZWJ sequences. No new rule ids. Fixes [#88](https://github.com/jose-compu/lacan-scan/issues/88) and [#89](https://github.com/jose-compu/lacan-scan/issues/89).
