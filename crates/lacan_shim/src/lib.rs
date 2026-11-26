@@ -401,36 +401,81 @@ fn line_zwj_allowed(line: &str) -> bool {
         .all(|&idx| zwj_is_emoji_joiner(&chars, idx))
 }
 
-/// First line with invisible / bidi / tag-block Unicode, or 0.
-pub fn find_invisible_line(text: &str) -> i64 {
-    for (idx, line) in text.lines().enumerate() {
-        let line = if idx == 0 {
-            line.strip_prefix('\u{feff}').unwrap_or(line)
+fn line_has_invisible_issue(line: &str) -> bool {
+    let mut saw_zwj = false;
+    let mut other_invisible = false;
+    for ch in line.chars() {
+        let u = ch as u32;
+        if !is_invisible_codepoint(u) {
+            continue;
+        }
+        if u == 0x200D {
+            saw_zwj = true;
         } else {
-            line
-        };
-        let mut saw_zwj = false;
-        let mut other_invisible = false;
-        for ch in line.chars() {
-            let u = ch as u32;
-            if !is_invisible_codepoint(u) {
-                continue;
-            }
-            if u == 0x200D {
-                saw_zwj = true;
-            } else {
-                other_invisible = true;
-                break;
-            }
-        }
-        if other_invisible {
-            return (idx as i64) + 1;
-        }
-        if saw_zwj && !line_zwj_allowed(line) {
-            return (idx as i64) + 1;
+            other_invisible = true;
+            break;
         }
     }
+    if other_invisible {
+        return true;
+    }
+    saw_zwj && !line_zwj_allowed(line)
+}
+
+fn path_extension_is_ipynb(path: &str) -> bool {
+    Path::new(path)
+        .extension()
+        .and_then(|e| e.to_str())
+        .is_some_and(|e| e.eq_ignore_ascii_case("ipynb"))
+}
+
+/// Jupyter widget progress-bar placeholder: `"placeholder"` value is exactly one U+200B.
+fn line_ipynb_widget_placeholder_zwsp(line: &str) -> bool {
+    let mut zwsp_count = 0u32;
+    for ch in line.chars() {
+        let u = ch as u32;
+        if !is_invisible_codepoint(u) {
+            continue;
+        }
+        if u == 0x200B {
+            zwsp_count += 1;
+        } else {
+            return false;
+        }
+    }
+    if zwsp_count != 1 {
+        return false;
+    }
+    let pattern = format!(r#""placeholder"\s*:\s*"{}\""#, '\u{200b}');
+    let Ok(re) = Regex::new(&pattern) else {
+        return false;
+    };
+    re.is_match(line)
+}
+
+/// First line with invisible / bidi / tag-block Unicode, or 0. `path` enables notebook-only allowlists.
+pub fn find_invisible_line_in(path: &str, text: &str) -> i64 {
+    let ipynb = path_extension_is_ipynb(path);
+    for (idx, raw_line) in text.lines().enumerate() {
+        let line = if idx == 0 {
+            raw_line.strip_prefix('\u{feff}').unwrap_or(raw_line)
+        } else {
+            raw_line
+        };
+        if !line_has_invisible_issue(line) {
+            continue;
+        }
+        if ipynb && line_ipynb_widget_placeholder_zwsp(line) {
+            continue;
+        }
+        return (idx as i64) + 1;
+    }
     0
+}
+
+/// First line with invisible / bidi / tag-block Unicode, or 0.
+pub fn find_invisible_line(text: &str) -> i64 {
+    find_invisible_line_in("", text)
 }
 
 fn trim_url_trailing_punct(url: &str) -> String {
@@ -1100,6 +1145,27 @@ mod tests {
         let text = "hello\u{200b}world\n";
         assert_eq!(find_invisible_line(text), 1);
         assert_eq!(find_invisible_line("hello world\n"), 0);
+    }
+
+    #[test]
+    fn find_invisible_line_ipynb_widget_placeholder() {
+        let line = format!(r#"      "placeholder": "{}",\n"#, '\u{200b}');
+        let text = format!("{{\n{line}}}\n");
+        assert_eq!(find_invisible_line_in("notebook.ipynb", &text), 0);
+        assert_eq!(find_invisible_line_in("NOTEBOOK.IPYNB", &text), 0);
+        assert_eq!(find_invisible_line_in("widget.py", &text), 2);
+        assert_eq!(find_invisible_line_in("", &text), 2);
+    }
+
+    #[test]
+    fn find_invisible_line_ipynb_widget_placeholder_rejects_extra_invisible() {
+        let zwsp = '\u{200b}';
+        let double = format!(r#"      "placeholder": "{}{}",\n"#, zwsp, zwsp);
+        assert_eq!(find_invisible_line_in("a.ipynb", &double), 1);
+        let bidi = format!(r#"      "placeholder": "{}{}",\n"#, zwsp, '\u{202e}');
+        assert_eq!(find_invisible_line_in("a.ipynb", &bidi), 1);
+        let zwsp_bidi = format!("plain {zwsp}\u{202e} text\n");
+        assert_eq!(find_invisible_line_in("a.ipynb", &zwsp_bidi), 1);
     }
 
     #[test]

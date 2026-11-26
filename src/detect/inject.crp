@@ -12,7 +12,7 @@ finding_is_high(f) = {
     severity_rank(f.severity) >= severity_rank(Severity.High)
 }
 use lacan_shim {
-    find_invisible_line, line_is_hidden_markup, re_find_line, str_contains, path_basename, path_extension,
+    find_invisible_line_in, line_is_hidden_markup, re_find_line, str_contains, path_basename, path_extension,
     str_to_lower, decode_hidden_payloads, join_lines, chat_template_issue, read_text,
     prompt_sink_line
 }
@@ -44,7 +44,7 @@ pub ais101(path, text) -> vec<Finding> = {
     if has_skip(text, "AIS101") {
         out
     } else {
-        line := find_invisible_line(text)
+        line := find_invisible_line_in(path, text)
         if line > 0 {
             push(out, make_finding(
                 "AIS101",
@@ -386,6 +386,19 @@ test "ais101 bidi override" = {
 test "ais101 dense zwj" = {
     text := read_text("../../fixtures/AIS101/fail/dense.md", 100000)
     fs := ais101("dense.md", text)
+    assert_eq(len(fs) > 0, true)
+    assert_eq(fs[0].id, "AIS101")
+}
+
+test "ais101 jupyter widget placeholder" = {
+    text := read_text("../../fixtures/AIS101/pass/widget.ipynb", 100000)
+    fs := ais101("fixtures/AIS101/pass/widget.ipynb", text)
+    assert_eq(len(fs), 0)
+}
+
+test "ais101 zwsp in notebook cell" = {
+    text := read_text("../../fixtures/AIS101/fail/cell.ipynb", 100000)
+    fs := ais101("fixtures/AIS101/fail/cell.ipynb", text)
     assert_eq(len(fs) > 0, true)
     assert_eq(fs[0].id, "AIS101")
 }
