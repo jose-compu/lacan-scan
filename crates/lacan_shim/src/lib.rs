@@ -401,11 +401,58 @@ fn line_zwj_allowed(line: &str) -> bool {
         .all(|&idx| zwj_is_emoji_joiner(&chars, idx))
 }
 
+const WAVING_BLACK_FLAG: u32 = 0x1F3F4;
+const CANCEL_TAG: u32 = 0xE007F;
+
+fn tag_lowercase_letter(u: u32) -> bool {
+    (0xE0061..=0xE007A).contains(&u)
+}
+
+fn tag_alnum(u: u32) -> bool {
+    tag_lowercase_letter(u) || (0xE0030..=0xE0039).contains(&u)
+}
+
+/// Length of a subdivision flag tag sequence starting at `start`, or 0.
+/// U+1F3F4, two tag letters, one to four tag letters or digits, then U+E007F
+/// (UTS #51 emoji tag sequence with a CLDR subdivision id, e.g. gbsct).
+fn subdivision_flag_len(chars: &[char], start: usize) -> usize {
+    if chars[start] as u32 != WAVING_BLACK_FLAG {
+        return 0;
+    }
+    let mut i = start + 1;
+    let mut spec_len = 0;
+    while i < chars.len() && spec_len < 6 {
+        let u = chars[i] as u32;
+        let ok = if spec_len < 2 {
+            tag_lowercase_letter(u)
+        } else {
+            tag_alnum(u)
+        };
+        if !ok {
+            break;
+        }
+        spec_len += 1;
+        i += 1;
+    }
+    if spec_len < 3 || i >= chars.len() || chars[i] as u32 != CANCEL_TAG {
+        return 0;
+    }
+    i + 1 - start
+}
+
 fn line_has_invisible_issue(line: &str) -> bool {
+    let chars: Vec<char> = line.chars().collect();
     let mut saw_zwj = false;
     let mut other_invisible = false;
-    for ch in line.chars() {
-        let u = ch as u32;
+    let mut i = 0;
+    while i < chars.len() {
+        let flag_len = subdivision_flag_len(&chars, i);
+        if flag_len > 0 {
+            i += flag_len;
+            continue;
+        }
+        let u = chars[i] as u32;
+        i += 1;
         if !is_invisible_codepoint(u) {
             continue;
         }
@@ -1219,6 +1266,50 @@ mod tests {
         assert_eq!(find_invisible_line(emoji), 0);
         let family = "\u{1f468}\u{200d}\u{1f469}\u{200d}\u{1f467}\n";
         assert_eq!(find_invisible_line(family), 0);
+    }
+
+    fn tags(s: &str) -> String {
+        s.chars()
+            .map(|c| char::from_u32(0xE0000 + c as u32).unwrap())
+            .collect()
+    }
+
+    #[test]
+    fn find_invisible_line_subdivision_flags_clean() {
+        let flag = |code: &str| format!("\u{1f3f4}{}\u{e007f}", tags(code));
+        let scotland = format!("  {{ code: \"gd\", flag: \"{}\" }},\n", flag("gbsct"));
+        assert_eq!(find_invisible_line(&scotland), 0);
+        let three = format!("{} {} {}\n", flag("gbeng"), flag("gbsct"), flag("gbwls"));
+        assert_eq!(find_invisible_line(&three), 0);
+        assert_eq!(find_invisible_line(&format!("{}\n", flag("usca"))), 0);
+        assert_eq!(find_invisible_line(&format!("{}\n", flag("fr75c"))), 0);
+    }
+
+    #[test]
+    fn find_invisible_line_tags_outside_flag_sequence() {
+        let cancel = '\u{e007f}';
+        let black_flag = '\u{1f3f4}';
+        // Tag run without the U+1F3F4 base.
+        let bare = format!("x{}{cancel}\n", tags("gbsct"));
+        assert_eq!(find_invisible_line(&bare), 1);
+        // Missing U+E007F terminator.
+        let open = format!("{black_flag}{}\n", tags("gbsct"));
+        assert_eq!(find_invisible_line(&open), 1);
+        // Smuggled text longer than a subdivision id.
+        let long = format!("{black_flag}{}{cancel}\n", tags("ignoreall"));
+        assert_eq!(find_invisible_line(&long), 1);
+        // Too short, uppercase, digit in region, space, and language tag.
+        for spec in ["gb", "GBSCT", "1bsct", "gb sct"] {
+            let line = format!("{black_flag}{}{cancel}\n", tags(spec));
+            assert_eq!(find_invisible_line(&line), 1, "spec={spec}");
+        }
+        let lang = format!("{black_flag}\u{e0001}{}{cancel}\n", tags("gbsct"));
+        assert_eq!(find_invisible_line(&lang), 1);
+        // A valid flag does not hide other invisible characters on the line.
+        let flag = format!("{black_flag}{}{cancel}", tags("gbsct"));
+        assert_eq!(find_invisible_line(&format!("{flag}\u{202e}\n")), 1);
+        assert_eq!(find_invisible_line(&format!("{flag}{}\n", tags("hi"))), 1);
+        assert_eq!(find_invisible_line(&format!("{flag}{cancel}\n")), 1);
     }
 
     #[test]
