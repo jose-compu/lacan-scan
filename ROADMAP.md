@@ -218,6 +218,8 @@ Judge datasets and artifacts as a whole, not line by line. **Shipped in 6.0.0:**
 
 **7.6.0** adds experimental `AIS006` ([#10](https://github.com/jose-compu/lacan-scan/issues/10)): MCP config with unpinned `npx` / `uvx` / `pipx`, or a remote `url` / `command` / `mcp-remote` http(s) target in `mcp.json`, `.mcp.json`, or `claude_desktop_config.json`. Reported; does not fail the job.
 
+**7.6.6** narrows AIS008 on regex definitions that describe curl or wget piped into `sh` or `bash`: every shell pipe in that sequence must be escaped (`\|`), as in guard patterns that block pipe-to-shell installs. One unescaped pipe on the line stays HIGH, including beside an escaped pattern. Netcat `` `nc` `` / `` `ncat` `` `` `-e` `` primitives, installer allowlists, and the loopback probe exception are unchanged. No new rule ids. Fixes [#101](https://github.com/jose-compu/lacan-scan/issues/101).
+
 **7.6.5** narrows AIS101 on Jupyter and Colab widget placeholders in `.ipynb` files: a `"placeholder"` JSON value of exactly one U+200B (widget progress-bar layout state) is not a finding. Zero-width spaces in notebook cell source, any other invisible character on the line, and the same placeholder line in any other file stay HIGH. No new rule ids. Fixes [#111](https://github.com/jose-compu/lacan-scan/issues/111).
 
 **7.6.4** narrows AIS008 loopback port probes: the usual one-way `echo` readiness check against 127.0.0.1, localhost, or IPv6 loopback is not a finding. Interactive reverse shells, bidirectional redirects, and probes to other hosts stay HIGH. Pipe-to-shell and installer allowlists unchanged. No new rule ids. Fixes [#108](https://github.com/jose-compu/lacan-scan/issues/108).

@@ -25,6 +25,7 @@ extern rust lacan_shim {
     find_invisible_line_in(path: str, text: str) -> int
     pipe_line_trusted(line: str) -> bool
     pipe_line_doc_installer(line: str) -> bool
+    pipe_line_regex_def(line: str) -> bool
     decode_hidden_payloads(text: str) -> vec<str>
     json_escape(s: str) -> str
     xml_escape(s: str) -> str

@@ -3,7 +3,7 @@
 use finding { Finding, Severity, make_finding, has_skip, concat_findings }
 use lacan_shim {
     re_find_line, re_is_match, str_contains, str_starts_with, path_basename, str_ends_with, str_to_lower, path_extension,
-    split_lines, gha_step_item_line, read_text, pipe_line_trusted, pipe_line_doc_installer
+    split_lines, gha_step_item_line, read_text, pipe_line_trusted, pipe_line_doc_installer, pipe_line_regex_def
 }
 
 -- AIS002 helpers. Crisp string interpolation forbids `{` in double-quoted
@@ -351,7 +351,9 @@ ais008_doc_extension(path) = {
 }
 
 ais008_pipe_line_ok(line, path) = {
-    pipe_line_trusted(line) || (ais008_doc_extension(path) && pipe_line_doc_installer(line))
+    pipe_line_trusted(line) ||
+        (ais008_doc_extension(path) && pipe_line_doc_installer(line)) ||
+        pipe_line_regex_def(line)
 }
 
 ais008_first_untrusted_pipe(text, pattern, path) -> int = {
@@ -715,6 +717,19 @@ test "ais008 healthcheck doc fixture clean" = {
 test "ais008 devtcp localhost fail fixture" = {
     text := read_text("../../fixtures/AIS008/fail/devtcp-localhost.sh", 100000)
     fs := ais008("scripts/devtcp-localhost.sh", text)
+    assert_eq(len(fs) > 0, true)
+    assert_eq(fs[0].id, "AIS008")
+}
+
+test "ais008 regex pattern pass fixture" = {
+    text := read_text("../../fixtures/AIS008/pass/pattern.py", 100000)
+    fs := ais008("tools/skills_guard.py", text)
+    assert_eq(len(fs), 0)
+}
+
+test "ais008 regex pattern and live fail fixture" = {
+    text := read_text("../../fixtures/AIS008/fail/pattern-and-live.py", 100000)
+    fs := ais008("tools/approval_detection.py", text)
     assert_eq(len(fs) > 0, true)
     assert_eq(fs[0].id, "AIS008")
 }
