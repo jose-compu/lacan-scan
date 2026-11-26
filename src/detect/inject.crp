@@ -403,6 +403,20 @@ test "ais101 zwsp in notebook cell" = {
     assert_eq(fs[0].id, "AIS101")
 }
 
+test "ais101 subdivision flag emoji clean" = {
+    text := read_text("../../fixtures/AIS101/pass/flags.tsx", 100000)
+    fs := ais101("flags.tsx", text)
+    assert_eq(len(fs), 0)
+}
+
+test "ais101 tag characters outside flag sequence" = {
+    text := read_text("../../fixtures/AIS101/fail/tags.tsx", 100000)
+    fs := ais101("tags.tsx", text)
+    assert_eq(len(fs) > 0, true)
+    assert_eq(fs[0].id, "AIS101")
+    assert_eq(fs[0].line, 3)
+}
+
 test "ais106 template injection" = {
     fs := ais106("tokenizer/chat_template.jinja", "x.__class__.__mro__\n")
     assert_eq(len(fs) > 0, true)
