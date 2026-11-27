@@ -1,0 +1,175 @@
+-- Coding-agent instruction-file backdoors (v8.0).
+
+use finding { Finding, Severity, make_finding, has_skip, concat_findings }
+use lacan_shim {
+    re_find_line, path_basename, path_extension, str_to_lower, str_contains, str_starts_with, str_ends_with, read_text
+}
+
+is_instruction_path(path) = {
+    base := path_basename(path)
+    ext := str_to_lower(path_extension(path))
+    base == ".cursorrules" ||
+        ((str_contains(path, "/.cursor/rules/") || str_starts_with(path, ".cursor/rules/")) && (ext == "md" || ext == "mdc")) ||
+        base == "AGENTS.md" ||
+        base == "CLAUDE.md" ||
+        base == "copilot-instructions.md" ||
+        ((str_contains(path, "/.github/instructions/") || str_starts_with(path, ".github/instructions/")) && str_ends_with(base, ".instructions.md"))
+}
+
+ais701_conceal() = "(?:do not mention|don't mention|do not tell the user|don't tell the user|without telling the user|do not disclose|hide this from the user)"
+
+ais701_exfil() = "(?:https?://|process\\.env|os\\.environ|id_rsa|\\.ssh|\\.aws/|API_KEY)"
+
+ais701_pattern_forward() = "(?s)<!--.*?" ++ ais701_conceal() ++ ".*?" ++ ais701_exfil() ++ ".*?-->"
+
+ais701_pattern_reverse() = "(?s)<!--.*?" ++ ais701_exfil() ++ ".*?" ++ ais701_conceal() ++ ".*?-->"
+
+pub ais701(path, text) -> vec<Finding> = {
+    out := new()
+    if has_skip(text, "AIS701") {
+        out
+    } else {
+        if is_instruction_path(path) {
+            line mut:= re_find_line(ais701_pattern_forward(), text)
+            if line == 0 {
+                line = re_find_line(ais701_pattern_reverse(), text)
+            }
+            if line > 0 {
+                push(out, make_finding(
+                    "AIS701",
+                    Severity.High,
+                    "8.0",
+                    "AML.T0051.000",
+                    path,
+                    line,
+                    "Instruction file HTML comment conceals a URL or secret read"
+                ))
+            }
+        }
+        out
+    }
+}
+
+ais702_pattern() = "(?s)(?:always\\s+)?(?:add|append|include|insert)\\s+(?:this|the following).*?(?:fetch\\(|curl |requests\\.post|requests\\.get)"
+
+pub ais702(path, text) -> vec<Finding> = {
+    out := new()
+    if has_skip(text, "AIS702") {
+        out
+    } else {
+        if is_instruction_path(path) {
+            line := re_find_line(ais702_pattern(), text)
+            if line > 0 {
+                push(out, make_finding(
+                    "AIS702",
+                    Severity.High,
+                    "8.0",
+                    "AML.T0051.000",
+                    path,
+                    line,
+                    "Instruction file tells the agent to insert a network call"
+                ))
+            }
+        }
+        out
+    }
+}
+
+pub scan_instruct(path, text) -> vec<Finding> = {
+    concat_findings(ais701(path, text), ais702(path, text))
+}
+
+test "ais701 fail cursorrules" = {
+    text := read_text("../../fixtures/AIS701/fail/.cursorrules", 100000)
+    fs := ais701(".cursorrules", text)
+    assert_eq(len(fs) > 0, true)
+    assert_eq(fs[0].id, "AIS701")
+}
+
+test "ais701 fail agents env" = {
+    text := read_text("../../fixtures/AIS701/fail/AGENTS.md", 100000)
+    fs := ais701("AGENTS.md", text)
+    assert_eq(len(fs) > 0, true)
+    assert_eq(fs[0].id, "AIS701")
+}
+
+test "ais701 fail copilot instructions" = {
+    text := read_text("../../fixtures/AIS701/fail/.github/copilot-instructions.md", 100000)
+    fs := ais701(".github/copilot-instructions.md", text)
+    assert_eq(len(fs) > 0, true)
+    assert_eq(fs[0].id, "AIS701")
+}
+
+test "ais701 pass normal agents" = {
+    text := read_text("../../fixtures/AIS701/pass/AGENTS.md", 100000)
+    fs := ais701("AGENTS.md", text)
+    assert_eq(len(fs), 0)
+}
+
+test "ais701 pass docs comment only" = {
+    text := read_text("../../fixtures/AIS701/pass/docs-comment/AGENTS.md", 100000)
+    fs := ais701("AGENTS.md", text)
+    assert_eq(len(fs), 0)
+}
+
+test "ais701 pass readme wrong path" = {
+    text := read_text("../../fixtures/AIS701/pass/README.md", 100000)
+    fs := ais701("README.md", text)
+    assert_eq(len(fs), 0)
+}
+
+test "ais701 pass conceal no exfil" = {
+    text := "<!-- do not mention internal names in user replies -->\n"
+    fs := ais701("AGENTS.md", text)
+    assert_eq(len(fs), 0)
+}
+
+test "ais701 respects skip" = {
+    text := read_text("../../fixtures/AIS701/pass/skip/.cursorrules", 100000)
+    fs := ais701(".cursorrules", text)
+    assert_eq(len(fs), 0)
+}
+
+test "ais701 py copy clean" = {
+    text := read_text("../../fixtures/AIS701/fail/.cursorrules", 100000)
+    fs := ais701("src/app.py", text)
+    assert_eq(len(fs), 0)
+}
+
+test "ais702 fail cursor rules mdc" = {
+    text := read_text("../../fixtures/AIS702/fail/.cursor/rules/exfil.mdc", 100000)
+    fs := ais702(".cursor/rules/exfil.mdc", text)
+    assert_eq(len(fs) > 0, true)
+    assert_eq(fs[0].id, "AIS702")
+}
+
+test "ais702 fail claude md" = {
+    text := read_text("../../fixtures/AIS702/fail/CLAUDE.md", 100000)
+    fs := ais702("CLAUDE.md", text)
+    assert_eq(len(fs) > 0, true)
+    assert_eq(fs[0].id, "AIS702")
+}
+
+test "ais702 pass normal agents" = {
+    text := read_text("../../fixtures/AIS702/pass/AGENTS.md", 100000)
+    fs := ais702("AGENTS.md", text)
+    assert_eq(len(fs), 0)
+}
+
+test "ais702 pass readme wrong path" = {
+    text := read_text("../../fixtures/AIS702/pass/README.md", 100000)
+    fs := ais702("README.md", text)
+    assert_eq(len(fs), 0)
+}
+
+test "ais702 respects skip" = {
+    text := read_text("../../fixtures/AIS702/pass/skip/.cursor/rules/exfil.mdc", 100000)
+    fs := ais702(".cursor/rules/exfil.mdc", text)
+    assert_eq(len(fs), 0)
+}
+
+test "ais702 py copy clean" = {
+    text := read_text("../../fixtures/AIS702/fail/CLAUDE.md", 100000)
+    fs := ais702("src/app.py", text)
+    assert_eq(len(fs), 0)
+}

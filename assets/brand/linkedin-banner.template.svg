@@ -13,7 +13,7 @@
     __BENEFIT_1__    short benefit
     __BENEFIT_2__    short benefit
     __BENEFIT_3__    short benefit
-    __ACTION_REF__   e.g. jose-compu/lacan-scan@v7
+    __ACTION_REF__   e.g. jose-compu/lacan-scan@v8
     __VERSION_PIN__  e.g. "7" or "7.2.2"
 
   Max recommended lengths (single line, no newline) at current font sizes:

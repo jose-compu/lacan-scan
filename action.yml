@@ -13,7 +13,7 @@ inputs:
   version:
     description: lacan release version (without leading v), major like "1", semver like "1.0.0", or "latest"
     required: false
-    default: "7"
+    default: "8"
   fail-on:
     description: Minimum severity that fails the job (LOW, MEDIUM, HIGH, CRITICAL)
     required: false
@@ -27,7 +27,7 @@ inputs:
     required: false
     default: "lacan.sarif"
   rules:
-    description: Comma-separated rule ids or packs (agent, inject, model, llmio, iac)
+    description: Comma-separated rule ids or packs (agent, instruct, inject, model, llmio, iac)
     required: false
     default: ""
   skip-rules:
