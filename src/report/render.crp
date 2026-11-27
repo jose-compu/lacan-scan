@@ -3,7 +3,7 @@
 use finding { Severity, make_finding, severity_name, singleton_finding }
 use lacan_shim {
     render_text_report, render_junit_report,
-    json_empty_array, json_push, json_len, json_pretty, json_string, json_set,
+    json_empty_array, json_push, json_pretty, json_string, json_set,
     vec_contains, str_vec_push, str_contains
 }
 
@@ -70,21 +70,60 @@ finding_json(f) -> json = {
     message: f.message,
 }
 
-pub render_json(findings, version) = {
+-- The JSON document both renderers share; only the summary differs between them.
+report_json(findings, version: str, summary: json) = {
     checks mut:= json_empty_array()
     i mut:= 0
     while i < len(findings) {
         checks = json_push(checks, finding_json(findings[i]))
         i = i + 1
     }
-    n := json_len(checks)
     doc := {
         tool: "lacan",
         version: version,
         results: { failed_checks: checks },
-        summary: { failed: n },
+        summary: summary,
     }
     json_pretty(doc)
+}
+
+summary_json(failed: int) -> json = { failed: failed }
+
+summary_json_with_stats(failed: int, files_scanned: int, rules_skipped: int, ignored: int) -> json = {
+    failed: failed,
+    files_scanned: files_scanned,
+    rules_skipped: rules_skipped,
+    ignored: ignored,
+}
+
+pub render_json(findings, version) = {
+    n := len(findings)
+    report_json(findings, version, summary_json(n))
+}
+
+-- Same document as render_json, plus how much was scanned, so a clean report can be told apart
+-- from a scan that matched nothing.
+pub render_json_with_stats(findings, version, files_scanned, rules_skipped, ignored) = {
+    n := len(findings)
+    report_json(findings, version, summary_json_with_stats(n, files_scanned, rules_skipped, ignored))
+}
+
+plural(n, one, many) = if n == 1 { "{n} {one}" } else { "{n} {many}" }
+
+-- One line under the text report: "Scanned 56 files" or
+-- "Scanned 56 files (2 rules skipped, 1 finding ignored by config)".
+pub render_scan_summary(files_scanned, rules_skipped, ignored) = {
+    head := "Scanned " ++ plural(files_scanned, "file", "files")
+    if rules_skipped == 0 && ignored == 0 {
+        head
+    } else if ignored == 0 {
+        head ++ " (" ++ plural(rules_skipped, "rule", "rules") ++ " skipped)"
+    } else if rules_skipped == 0 {
+        head ++ " (" ++ plural(ignored, "finding", "findings") ++ " ignored by config)"
+    } else {
+        head ++ " (" ++ plural(rules_skipped, "rule", "rules") ++ " skipped, "
+            ++ plural(ignored, "finding", "findings") ++ " ignored by config)"
+    }
 }
 
 sarif_level(sev_name) = {
@@ -212,4 +251,25 @@ test "empty findings json summary zero" = {
     xs := new()
     body := render_json(xs, "1.0.0")
     assert_eq(report_mentions(body, "failed"), true)
+}
+
+test "render_scan_summary counts files" = {
+    assert_eq(render_scan_summary(56, 0, 0), "Scanned 56 files")
+    assert_eq(render_scan_summary(1, 0, 0), "Scanned 1 file")
+    assert_eq(render_scan_summary(0, 0, 0), "Scanned 0 files")
+}
+
+test "render_scan_summary names skips and ignores" = {
+    assert_eq(render_scan_summary(3, 2, 0), "Scanned 3 files (2 rules skipped)")
+    assert_eq(render_scan_summary(3, 0, 1), "Scanned 3 files (1 finding ignored by config)")
+    assert_eq(render_scan_summary(3, 1, 2), "Scanned 3 files (1 rule skipped, 2 findings ignored by config)")
+}
+
+test "render_json_with_stats keeps failed and adds counts" = {
+    xs := sample_findings()
+    body := render_json_with_stats(xs, "1.0.0", 7, 1, 2)
+    assert_eq(report_mentions(body, "\"failed\": 1"), true)
+    assert_eq(report_mentions(body, "\"files_scanned\": 7"), true)
+    assert_eq(report_mentions(body, "\"rules_skipped\": 1"), true)
+    assert_eq(report_mentions(body, "\"ignored\": 2"), true)
 }
