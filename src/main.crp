@@ -11,7 +11,9 @@ use detect.inject { scan_inject }
 use detect.model { scan_model, ais211 }
 use detect.llmio { scan_llmio }
 use detect.iac { scan_iac }
-use report.render { render_text, render_json, render_sarif, render_junit }
+use report.render {
+    render_text, render_json, render_json_with_stats, render_sarif, render_junit, render_scan_summary
+}
 use config { resolve_config_text, union_strs, filter_ignored }
 use lacan_shim {
     cli_args, process_exit, read_text, print_line, eprint_line,
@@ -245,7 +247,16 @@ run_detectors(path, text, class, opts, skip) -> vec<Finding> = {
     acc
 }
 
-scan_path(opts) -> vec<Finding> = {
+type ScanResult = {
+    findings: vec<Finding>
+    files_scanned: int
+    rules_skipped: int
+    ignored: int
+}
+
+scan_path(opts) -> vec<Finding> = scan_path_with_stats(opts).findings
+
+scan_path_with_stats(opts) -> ScanResult = {
     cfg := resolve_config_text(opts.path, opts.config_path, opts.no_config)
     skip := union_strs(opts.skip_rules, config_skip_rules(cfg))
     findings := new()
@@ -269,19 +280,28 @@ scan_path(opts) -> vec<Finding> = {
         findings = concat_findings(findings, got)
         i = i + 1
     }
-    filter_ignored(findings, cfg)
+    found := len(findings)
+    kept := filter_ignored(findings, cfg)
+    ScanResult {
+        ignored: found - len(kept)
+        findings: kept
+        files_scanned: len(files)
+        rules_skipped: len(skip)
+    }
 }
 
 has_fmt(outputs, name) = vec_contains(outputs, name)
 
-emit_reports(findings, opts) = {
+emit_reports(result, opts) = {
+    findings := result.findings
     i mut:= 0
     while i < len(opts.outputs) {
         fmt := opts.outputs[i]
         if fmt == "cli" {
             print_line(render_text(findings))
+            print_line(render_scan_summary(result.files_scanned, result.rules_skipped, result.ignored))
         } else if fmt == "json" {
-            body := render_json(findings, tool_version())
+            body := render_json_with_stats(findings, tool_version(), result.files_scanned, result.rules_skipped, result.ignored)
             ok := write_file(opts.json_file, body)
             if !ok {
                 eprint_line("failed to write " ++ opts.json_file)
@@ -318,10 +338,13 @@ pub main() = {
         process_exit(0)
     }
 
-    findings := scan_path(opts)
-    emit_reports(findings, opts)
+    result := scan_path_with_stats(opts)
+    if result.files_scanned == 0 {
+        eprint_line("lacan: no files scanned under " ++ opts.path ++ " (check the path)")
+    }
+    emit_reports(result, opts)
 
-    failing := count_exit_failing(findings, opts.fail_on)
+    failing := count_exit_failing(result.findings, opts.fail_on)
     if failing > 0 && !opts.soft_fail {
         process_exit(1)
     }
@@ -640,4 +663,27 @@ test "e2e skip comments rust python ts bash" = {
     opts := default_scan_opts(fixture("fixtures/skip-comments/pass"))
     findings := scan_path(opts)
     assert_eq(len(findings), 0)
+}
+
+test "e2e stats count scanned files" = {
+    opts := default_scan_opts(fixture("fixtures/AIS008/fail"))
+    result := scan_path_with_stats(opts)
+    assert_eq(result.files_scanned > 0, true)
+    assert_eq(result.rules_skipped, 0)
+    assert_eq(result.ignored, 0)
+    assert_eq(len(result.findings), len(scan_path(opts)))
+}
+
+test "e2e stats count findings ignored by config" = {
+    opts := default_scan_opts(fixture("fixtures/config-skip/ignored"))
+    result := scan_path_with_stats(opts)
+    assert_eq(result.ignored > 0, true)
+    assert_eq(finding_ids_contain(result.findings, "AIS008"), false)
+}
+
+test "e2e stats count skipped rules" = {
+    opts := default_scan_opts(fixture("fixtures/config-skip/skip-rules"))
+    result := scan_path_with_stats(opts)
+    assert_eq(result.rules_skipped, 1)
+    assert_eq(result.ignored, 0)
 }
