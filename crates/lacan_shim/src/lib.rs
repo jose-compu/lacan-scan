@@ -1302,6 +1302,49 @@ mod tests {
         assert_eq!(find_invisible_line(&format!("ok\n{flag_bidi}")), 2);
     }
 
+    fn tags(s: &str) -> String {
+        s.chars()
+            .map(|c| char::from_u32(0xE0000 + c as u32).unwrap())
+            .collect()
+    }
+
+    #[test]
+    fn find_invisible_line_subdivision_flags_clean() {
+        let flag = |code: &str| format!("\u{1f3f4}{}\u{e007f}", tags(code));
+        let scotland = format!("  {{ code: \"gd\", flag: \"{}\" }},\n", flag("gbsct"));
+        assert_eq!(find_invisible_line(&scotland), 0);
+        let three = format!("{} {} {}\n", flag("gbeng"), flag("gbsct"), flag("gbwls"));
+        assert_eq!(find_invisible_line(&three), 0);
+        assert_eq!(find_invisible_line(&format!("{}\n", flag("usca"))), 0);
+    }
+
+    #[test]
+    fn find_invisible_line_tags_outside_flag_sequence() {
+        let cancel = '\u{e007f}';
+        let black_flag = '\u{1f3f4}';
+        // Tag run without the U+1F3F4 base.
+        let bare = format!("x{}{cancel}\n", tags("gbsct"));
+        assert_eq!(find_invisible_line(&bare), 1);
+        // Missing U+E007F terminator.
+        let open = format!("{black_flag}{}\n", tags("gbsct"));
+        assert_eq!(find_invisible_line(&open), 1);
+        // Smuggled text longer than a subdivision id.
+        let long = format!("{black_flag}{}{cancel}\n", tags("ignoreall"));
+        assert_eq!(find_invisible_line(&long), 1);
+        // Uppercase, digit, space, and language tag.
+        for spec in ["GBSCT", "1bsct", "gb sct"] {
+            let line = format!("{black_flag}{}{cancel}\n", tags(spec));
+            assert_eq!(find_invisible_line(&line), 1, "spec={spec}");
+        }
+        let lang = format!("{black_flag}\u{e0001}{}{cancel}\n", tags("gbsct"));
+        assert_eq!(find_invisible_line(&lang), 1);
+        // A valid flag does not hide other invisible characters on the line.
+        let flag = format!("{black_flag}{}{cancel}", tags("gbsct"));
+        assert_eq!(find_invisible_line(&format!("{flag}\u{202e}\n")), 1);
+        assert_eq!(find_invisible_line(&format!("{flag}{}\n", tags("hi"))), 1);
+        assert_eq!(find_invisible_line(&format!("{flag}{cancel}\n")), 1);
+    }
+
     #[test]
     fn pipe_line_trusted_installers() {
         assert!(pipe_line_trusted(
