@@ -6,6 +6,7 @@ use finding {
 }
 use walk { list_files, classify, FileClass }
 use detect.agent { scan_agent }
+use detect.instruct { scan_instruct }
 use detect.inject { scan_inject }
 use detect.model { scan_model, ais211 }
 use detect.llmio { scan_llmio }
@@ -56,7 +57,7 @@ print_help() = {
     print_line("  --sarif-file PATH     default lacan.sarif")
     print_line("  --json-file PATH      default lacan.json")
     print_line("  --junit-file PATH     default lacan.junit.xml")
-    print_line("  --rules LIST          rule ids or packs: agent,inject,model,llmio,iac")
+    print_line("  --rules LIST          rule ids or packs: agent,instruct,inject,model,llmio,iac")
     print_line("  --skip-rules LIST     rule ids to skip")
     print_line("  --config PATH         suppression file (default .lacan.toml or lacan.toml)")
     print_line("  --no-config           do not load a suppression file")
@@ -230,6 +231,7 @@ take_enabled(found, opts, skip, pack) -> vec<Finding> = {
 
 run_detectors(path, text, class, opts, skip) -> vec<Finding> = {
     acc := take_enabled(scan_agent(path, text), opts, skip, "agent")
+    acc = concat_findings(acc, take_enabled(scan_instruct(path, text), opts, skip, "instruct"))
     if is_inject_class(class) {
         acc = concat_findings(acc, take_enabled(scan_inject(path, text), opts, skip, "inject"))
     }
