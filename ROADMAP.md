@@ -218,7 +218,7 @@ Judge datasets and artifacts as a whole, not line by line. **Shipped in 6.0.0:**
 
 **7.6.0** adds experimental `AIS006` ([#10](https://github.com/jose-compu/lacan-scan/issues/10)): MCP config with unpinned `npx` / `uvx` / `pipx`, or a remote `url` / `command` / `mcp-remote` http(s) target in `mcp.json`, `.mcp.json`, or `claude_desktop_config.json`. Reported; does not fail the job.
 
-**7.6.7** narrows AIS008 loopback `exec` port probes: `exec` on a descriptor other than 0, 1, or 2 opening `/dev/tcp/` with `<>`, `>`, or `<` against 127.0.0.1, localhost, or IPv6 loopback is not a finding, like the one-way `echo` readiness check from v7.6.4. Interactive shells, stdio redirected onto the socket, and other hosts stay HIGH. Installer allowlists and pipe-to-shell paths unchanged. No new rule ids. Fixes [#122](https://github.com/jose-compu/lacan-scan/issues/122).
+**7.6.7** narrows AIS008 loopback exec port probes: the spare-descriptor readiness check against 127.0.0.1, localhost, or IPv6 loopback matches the one-way echo probe from v7.6.4. Interactive shells, stdio on the socket, and other hosts stay HIGH. Installer allowlists and pipe-to-shell paths unchanged. No new rule ids. Fixes [#122](https://github.com/jose-compu/lacan-scan/issues/122).
 
 **7.6.6** narrows AIS008 on regex definitions that describe curl or wget piped into `sh` or `bash`: every shell pipe in that sequence must be escaped (`\|`), as in guard patterns that block pipe-to-shell installs. One unescaped pipe on the line stays HIGH, including beside an escaped pattern. Netcat `` `nc` `` / `` `ncat` `` `` `-e` `` primitives, installer allowlists, and the loopback probe exception are unchanged. No new rule ids. Fixes [#101](https://github.com/jose-compu/lacan-scan/issues/101).
 
