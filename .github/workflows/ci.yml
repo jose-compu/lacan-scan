@@ -21,7 +21,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # Crisp 1.11 needs rustc >= 1.88. tree-sitter-language 0.1.9 needs >= 1.90.
       - uses: dtolnay/rust-toolchain@1.90.0
@@ -68,6 +68,11 @@ jobs:
           echo "== cargo test -p lacan_shim =="
           cargo test --manifest-path crates/lacan_shim/Cargo.toml -- --nocapture
 
+      - name: resolve-release-tag unit tests
+        run: |
+          set -euo pipefail
+          python3 scripts/test_resolve_release_tag.py -v
+
       - name: crisp build
         run: |
           set -euo pipefail
@@ -79,7 +84,7 @@ jobs:
           echo "rustc warning lines: ${warn_count}"
           test "$warn_count" -eq 0
           test -x target/rust/target/debug/lacan
-          ./target/rust/target/debug/lacan --version | grep -F 'lacan 8.0.1'
+          ./target/rust/target/debug/lacan --version | grep -F 'lacan 8.0.2'
           grep -F 'name = "lacan-scan"' target/rust/Cargo.toml
           grep -A1 '\[\[bin\]\]' target/rust/Cargo.toml | grep -F 'name = "lacan"'
 

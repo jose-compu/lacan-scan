@@ -91,7 +91,6 @@ cargo package --manifest-path "$stage/Cargo.toml" --list --allow-dirty | tee /tm
 grep -E 'src/main\.rs|Cargo\.toml|LICENSE|README\.md' /tmp/lacan-scan-package.list >/dev/null
 
 echo "== publish lacan-scan =="
-shim_path="$(cd crates/lacan_shim && pwd)"
 
 if [[ "$execute" -eq 1 ]]; then
   echo "waiting for crates.io to index lacan_shim ${version}..."
@@ -121,21 +120,7 @@ path.write_text(text)
 PY
   cargo publish --manifest-path "$stage/Cargo.toml" --locked --allow-dirty
 else
-  # Path-only so packaging works before lacan_shim exists on crates.io.
-  python3 - "$stage/Cargo.toml" "$shim_path" <<'PY'
-import pathlib, re, sys
-path = pathlib.Path(sys.argv[1])
-shim = sys.argv[2]
-text = re.sub(
-    r'lacan_shim = \{[^}]+\}',
-    f'lacan_shim = {{ path = "{shim}" }}',
-    path.read_text(),
-    count=1,
-)
-path.write_text(text)
-PY
-  cargo package --manifest-path "$stage/Cargo.toml" --allow-dirty
-  echo "packaged + verified ok (dry-run; pass --execute to upload)"
+  echo "lacan-scan staged + --list ok (full package runs with --execute after lacan_shim is on crates.io)"
 fi
 
 echo "done. install with: cargo install lacan-scan --locked"
