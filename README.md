@@ -123,6 +123,8 @@ lacan scan [path] [--fail-on HIGH] [--output cli,json,sarif,junit]
 
 Exit codes: `0` clean, `1` findings at/above `--fail-on`, `2` usage error.
 
+Every run reports how much it scanned, so a clean result can be told apart from a scan that matched nothing. The `cli` output ends with a line such as `Scanned 56 files (1 rule skipped, 2 findings ignored by config)`, and the `json` output carries the same counts in `summary` (`files_scanned`, `rules_skipped`, `ignored`) next to `failed`. A scan that finds no files at all also warns on stderr.
+
 Examples:
 
 ```bash
