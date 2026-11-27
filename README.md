@@ -12,7 +12,7 @@
   <a href="https://github.com/jose-compu/lacan-scan/actions/workflows/ci.yml"><img src="https://github.com/jose-compu/lacan-scan/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="https://github.com/jose-compu/lacan-scan/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/tests-crisp%20%2B%20e2e-2E4A3F?logo=githubactions&logoColor=F6EAD7" alt="Tests: Crisp + e2e" /></a>
   <a href="https://crisp-lang.org/"><img src="https://img.shields.io/badge/Crisp-1.11.1-C9A96A?labelColor=2E4A3F" alt="Crisp 1.11.1" /></a>
-  <a href="https://github.com/jose-compu/lacan-scan/releases"><img src="https://img.shields.io/badge/version-8.0.1-2E4A3F?labelColor=F6EAD7&color=2E4A3F" alt="Version 8.0.1" /></a>
+  <a href="https://github.com/jose-compu/lacan-scan/releases"><img src="https://img.shields.io/badge/version-8.0.2-2E4A3F?labelColor=F6EAD7&color=2E4A3F" alt="Version 8.0.2" /></a>
   <a href="https://crates.io/crates/lacan-scan"><img src="https://img.shields.io/crates/v/lacan-scan?label=crates.io&color=2E4A3F" alt="crates.io lacan-scan" /></a>
   <a href="https://github.com/marketplace/actions/lacan-scan"><img src="https://img.shields.io/badge/Marketplace-lacan--scan-2E4A3F?labelColor=C9A96A" alt="GitHub Marketplace" /></a>
   <a href="https://github.com/jose-compu/lacan-scan/blob/main/action.yml"><img src="https://img.shields.io/badge/Action-lacan--scan%40v8-2088FF?logo=githubactions&logoColor=white" alt="GitHub Action @v8" /></a>
@@ -69,7 +69,7 @@ jobs:
           category: lacan
 ```
 
-The Action downloads a checksum-verified release binary. It does not compile Lacan Scan on the runner. Pin floating major `@v8` (tracks `v8.*`; earlier majors `@v1`–`@v7` remain). Pin binary `version: "8.0.1"` for a fixed artifact. PR workflows need `fetch-depth: 0` (or enough history) so `changed-base` resolves. A `.lacan.toml` in the scanned path is loaded automatically (or set `config:` / `skip-rules:`).
+The Action downloads a checksum-verified release binary. It does not compile Lacan Scan on the runner. Pin floating major `@v8` (tracks `v8.*`; earlier majors `@v1`–`@v7` remain). Pin binary `version: "8.0.2"` for a fixed artifact. PR workflows need `fetch-depth: 0` (or enough history) so `changed-base` resolves. A `.lacan.toml` in the scanned path is loaded automatically (or set `config:` / `skip-rules:`).
 
 **Marketplace listing:** [lacan-scan](https://github.com/marketplace/actions/lacan-scan) (README images use tagged assets for reliable rendering).
 
@@ -86,6 +86,8 @@ cargo install lacan-scan --locked
 lacan --version
 lacan scan . --fail-on HIGH
 ```
+
+The [GitHub Release](https://github.com/jose-compu/lacan-scan/releases) binary and the `@v8` Action are the reference install paths. The crates.io package is published from the release workflow when [Trusted Publishing](https://crates.io/docs/trusted-publishing/) is enabled for this repository; until then `cargo install lacan-scan` may lag behind the latest GitHub Release. Maintainers publish from the repo root with `./scripts/publish-crates.sh` (dry run), then `./scripts/publish-crates.sh --execute` (publishes `lacan_shim` first); do not run bare `cargo publish` inside `target/rust`.
 
 **Release binary:** download `lacan-<triple>.tar.gz` from [Releases](https://github.com/jose-compu/lacan-scan/releases), verify the `.sha256`, extract, and put `lacan` on your `PATH`.
 
@@ -232,6 +234,18 @@ CLI `--skip-rules` is **merged with** config `skip-rules` (both apply). Inline c
 ## Detectors
 
 All v1 and v2 rules remain enabled by default. See prior release notes for rule tables (AIS001–AIS504).
+
+### v8.0.2
+
+No new rules. Same `@v8` line.
+
+- A clean run now shows what was scanned: `Scanned N files`, plus skipped rules and config-ignored findings. JSON `summary` adds `files_scanned`, `rules_skipped` and `ignored` (`failed` is unchanged). An empty run warns on stderr. Fixes [#129](https://github.com/jose-compu/lacan-scan/issues/129).
+- The Action retries transient GitHub API errors (5xx, 429, timeouts) when resolving the release tag, instead of failing the job.
+- Workflows moved off deprecated Node 20 actions. Fixes [#130](https://github.com/jose-compu/lacan-scan/issues/130).
+- Release workflow can publish `lacan-scan` to crates.io via Trusted Publishing when enabled on crates.io; `fix-emitted-cargo.sh` always version-pins the `lacan_shim` path dep so publish uses `./scripts/publish-crates.sh`, not bare `cargo publish` in `target/rust`. Refs [#128](https://github.com/jose-compu/lacan-scan/issues/128).
+- More AIS101 subdivision-flag tests.
+
+Thanks to @Aadithya-kl for #123, #131 and #132, and for the issue reports behind them.
 
 ### v8.0.1
 
@@ -527,7 +541,7 @@ Release process for maintainers: see `~/AGENTS.md` (*Lacan Scan release playbook
 | **v8** | AIS701 and AIS702 instruction-file backdoor checks (HIGH, blocking). Action `@v8` |
 | **v7** | AIS301 flow; 7.1.0 AIS002 experimental; 7.2.0 AIS104 experimental; 7.2.1 fixture patch; 7.2.2 precision baseline; 7.2.3 AIS102 patch; 7.3.0 experimental AIS003; 7.4.0 experimental AIS004; 7.5.0 experimental AIS009; 7.6.0 experimental AIS006; 7.6.1 AIS008 and AIS101 precision; 7.6.2 AIS101 UTF-8 BOM; 7.6.3 AIS008 doc installers; 7.6.4 AIS008 loopback probe; 7.6.5 AIS101 Jupyter widget placeholder; 7.6.6 AIS008 escaped regex pipe; 7.6.7 AIS008 loopback exec probe. Action `@v7` |
 
-Tag `v8.0.1` (semver) or any `v8.*.*` tag triggers `.github/workflows/release.yml`, uploads platform tarballs, publishes the GitHub Release, and moves floating tag `v8` → that commit.
+Tag `v8.0.2` (semver) or any `v8.*.*` tag triggers `.github/workflows/release.yml`, uploads platform tarballs, publishes the GitHub Release, and moves floating tag `v8` → that commit.
 
 See [Milestones](https://github.com/jose-compu/lacan-scan/milestones). Planned releases (v4 and later) are in [ROADMAP.md](ROADMAP.md).
 

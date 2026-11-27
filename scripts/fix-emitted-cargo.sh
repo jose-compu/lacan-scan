@@ -67,14 +67,15 @@ if "description =" not in text:
         1,
     )
 
+# Path for local builds; version is required for `cargo package` / publish.
+text = re.sub(
+    r'lacan_shim = \{[^}]+\}',
+    f'lacan_shim = {{ version = "{version}", path = "../../crates/lacan_shim" }}',
+    text,
+    count=1,
+)
+
 if for_publish:
-    # Prefer registry lacan_shim once published; keep path for local verify.
-    text = re.sub(
-        r'lacan_shim = \{[^}]+\}',
-        f'lacan_shim = {{ version = "{version}", path = "../../crates/lacan_shim" }}',
-        text,
-        count=1,
-    )
     if "include =" not in text:
         text = text.replace(
             "[workspace]\n",

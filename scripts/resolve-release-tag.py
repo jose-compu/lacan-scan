@@ -6,12 +6,55 @@ import json
 import os
 import re
 import sys
+import time
+import urllib.error
 import urllib.request
-
 
 REPO = "jose-compu/lacan-scan"
 SEMVER = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$")
 MAJOR = re.compile(r"^[0-9]+$")
+MAX_ATTEMPTS = 4
+BACKOFF_SECONDS = (2, 4, 8)
+
+
+def _retry_after_seconds(err: urllib.error.HTTPError) -> float | None:
+    headers = err.headers
+    if headers is None:
+        return None
+    raw = headers.get("Retry-After")
+    if not raw:
+        return None
+    try:
+        return float(raw)
+    except ValueError:
+        return None
+
+
+def urlopen_with_retry(req: urllib.request.Request, timeout: float = 60):
+    last: BaseException | None = None
+    for attempt in range(MAX_ATTEMPTS):
+        try:
+            return urllib.request.urlopen(req, timeout=timeout)
+        except urllib.error.HTTPError as err:
+            last = err
+            if err.code != 429 and not (500 <= err.code < 600):
+                raise
+            if attempt >= MAX_ATTEMPTS - 1:
+                raise
+            wait = _retry_after_seconds(err) or BACKOFF_SECONDS[attempt]
+            time.sleep(wait)
+        except (urllib.error.URLError, TimeoutError, OSError) as err:
+            last = err
+            if attempt >= MAX_ATTEMPTS - 1:
+                raise
+            time.sleep(BACKOFF_SECONDS[attempt])
+    assert last is not None
+    raise last
+
+
+def fetch_json(req: urllib.request.Request) -> object:
+    with urlopen_with_retry(req) as resp:
+        return json.load(resp)
 
 
 def fetch_releases(token: str | None) -> list[dict]:
@@ -23,8 +66,10 @@ def fetch_releases(token: str | None) -> list[dict]:
             **({"Authorization": f"Bearer {token}"} if token else {}),
         },
     )
-    with urllib.request.urlopen(req, timeout=60) as resp:
-        return json.load(resp)
+    data = fetch_json(req)
+    if not isinstance(data, list):
+        raise TypeError("releases response is not a list")
+    return data
 
 
 def tarball_assets(release: dict) -> list[dict]:
@@ -84,8 +129,9 @@ def main() -> int:
                 **({"Authorization": f"Bearer {token}"} if token else {}),
             },
         )
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            tag = json.load(resp)["tag_name"]
+        payload = fetch_json(req)
+        if isinstance(payload, dict):
+            tag = str(payload.get("tag_name") or "")
     elif MAJOR.match(version):
         tag = resolve_major(version, rels)
     elif SEMVER.match(version):

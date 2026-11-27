@@ -21,3 +21,4 @@ assets/_grid/
 
 # Per-release LinkedIn banners (template only is tracked)
 assets/brand/linkedin-banners/
+scripts/__pycache__/
