@@ -1,3 +1,4 @@
+// lacan:skip=AIS103:pattern literals in this module
 //! AIS102 / AIS103 line helpers (skip comments, locales, defensive pattern lists).
 
 use regex::Regex;

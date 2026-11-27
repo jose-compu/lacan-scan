@@ -1,3 +1,4 @@
+// lacan:skip=AIS203:pattern literals and unit tests in this module
 //! AIS203: Hugging Face `from_pretrained` / `trust_remote_code` at real call sites.
 
 use regex::Regex;
