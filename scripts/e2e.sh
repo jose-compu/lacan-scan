@@ -13,7 +13,7 @@ fi
 
 echo "== version =="
 "$bin" --version | tee /tmp/lacan-e2e-version.txt
-grep -F 'lacan 8.0.2' /tmp/lacan-e2e-version.txt
+grep -F 'lacan 8.0.3' /tmp/lacan-e2e-version.txt
 
 echo "== help =="
 help_out="$("$bin" --help)"

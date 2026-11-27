@@ -12,7 +12,7 @@
   <a href="https://github.com/jose-compu/lacan-scan/actions/workflows/ci.yml"><img src="https://github.com/jose-compu/lacan-scan/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="https://github.com/jose-compu/lacan-scan/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/tests-crisp%20%2B%20e2e-2E4A3F?logo=githubactions&logoColor=F6EAD7" alt="Tests: Crisp + e2e" /></a>
   <a href="https://crisp-lang.org/"><img src="https://img.shields.io/badge/Crisp-1.11.1-C9A96A?labelColor=2E4A3F" alt="Crisp 1.11.1" /></a>
-  <a href="https://github.com/jose-compu/lacan-scan/releases"><img src="https://img.shields.io/badge/version-8.0.2-2E4A3F?labelColor=F6EAD7&color=2E4A3F" alt="Version 8.0.2" /></a>
+  <a href="https://github.com/jose-compu/lacan-scan/releases"><img src="https://img.shields.io/badge/version-8.0.3-2E4A3F?labelColor=F6EAD7&color=2E4A3F" alt="Version 8.0.3" /></a>
   <a href="https://crates.io/crates/lacan-scan"><img src="https://img.shields.io/crates/v/lacan-scan?label=crates.io&color=2E4A3F" alt="crates.io lacan-scan" /></a>
   <a href="https://github.com/marketplace/actions/lacan-scan"><img src="https://img.shields.io/badge/Marketplace-lacan--scan-2E4A3F?labelColor=C9A96A" alt="GitHub Marketplace" /></a>
   <a href="https://github.com/jose-compu/lacan-scan/blob/main/action.yml"><img src="https://img.shields.io/badge/Action-lacan--scan%40v8-2088FF?logo=githubactions&logoColor=white" alt="GitHub Action @v8" /></a>
@@ -69,7 +69,7 @@ jobs:
           category: lacan
 ```
 
-The Action downloads a checksum-verified release binary. It does not compile Lacan Scan on the runner. Pin floating major `@v8` (tracks `v8.*`; earlier majors `@v1`–`@v7` remain). Pin binary `version: "8.0.2"` for a fixed artifact. PR workflows need `fetch-depth: 0` (or enough history) so `changed-base` resolves. A `.lacan.toml` in the scanned path is loaded automatically (or set `config:` / `skip-rules:`).
+The Action downloads a checksum-verified release binary. It does not compile Lacan Scan on the runner. Pin floating major `@v8` (tracks `v8.*`; earlier majors `@v1`–`@v7` remain). Pin binary `version: "8.0.3"` for a fixed artifact. PR workflows need `fetch-depth: 0` (or enough history) so `changed-base` resolves. A `.lacan.toml` in the scanned path is loaded automatically (or set `config:` / `skip-rules:`).
 
 **Marketplace listing:** [lacan-scan](https://github.com/marketplace/actions/lacan-scan) (README images use tagged assets for reliable rendering).
 
@@ -234,6 +234,25 @@ CLI `--skip-rules` is **merged with** config `skip-rules` (both apply). Inline c
 ## Detectors
 
 All v1 and v2 rules remain enabled by default. See prior release notes for rule tables (AIS001–AIS504).
+
+### v8.0.3
+
+No new rules. Same `@v8` line. Fewer false positives.
+
+- AIS001 no longer flags the hooks git-lfs installs in `.git/hooks` (#134). Closes #92.
+- AIS001 treats only space and tab as blank lines in git-lfs hook templates (Unicode spaces no longer hide extra hook lines).
+- AIS004 matches npm lifecycle hooks only inside `package.json` `scripts` (not dependency names). Closes #93. Closes #106.
+- AIS006 allows vendor MCP HTTPS endpoints such as `mcp.linear.app`. Closes #119.
+- AIS008 skips doc-only installer strings, legacy `ollama.ai` docs URLs, and vendored swagger-ui bundles. Closes #113. Closes #125.
+- AIS203 scopes unpinned `from_pretrained` to Hugging Face `transformers` call sites in Python. Closes #94.
+- AIS102 / AIS103 skip locale bundles, defensive pattern lists, and comment-only control-token docs. Closes #96. Closes #102. Closes #105.
+- AIS104 ignores role-splitting message parser assignments. Closes #103.
+- AIS101 skips non-bidi invisible characters in code comments. Closes #104.
+- AIS107 skips Sphinx apidoc Jinja templates. Closes #95.
+- AIS105 skips ranking comments that mention bypassing a retrieval filter without safety context. Closes #109.
+- AIS304 scopes logprobs-without-rate-limit to serving paths and skips vendor trees and import lines. Closes #112.
+
+Thanks to @Aadithya-kl for #134 and the git-lfs investigation behind it.
 
 ### v8.0.2
 
@@ -541,7 +560,7 @@ Release process for maintainers: see `~/AGENTS.md` (*Lacan Scan release playbook
 | **v8** | AIS701 and AIS702 instruction-file backdoor checks (HIGH, blocking). Action `@v8` |
 | **v7** | AIS301 flow; 7.1.0 AIS002 experimental; 7.2.0 AIS104 experimental; 7.2.1 fixture patch; 7.2.2 precision baseline; 7.2.3 AIS102 patch; 7.3.0 experimental AIS003; 7.4.0 experimental AIS004; 7.5.0 experimental AIS009; 7.6.0 experimental AIS006; 7.6.1 AIS008 and AIS101 precision; 7.6.2 AIS101 UTF-8 BOM; 7.6.3 AIS008 doc installers; 7.6.4 AIS008 loopback probe; 7.6.5 AIS101 Jupyter widget placeholder; 7.6.6 AIS008 escaped regex pipe; 7.6.7 AIS008 loopback exec probe. Action `@v7` |
 
-Tag `v8.0.2` (semver) or any `v8.*.*` tag triggers `.github/workflows/release.yml`, uploads platform tarballs, publishes the GitHub Release, and moves floating tag `v8` → that commit.
+Tag `v8.0.3` (semver) or any `v8.*.*` tag triggers `.github/workflows/release.yml`, uploads platform tarballs, publishes the GitHub Release, and moves floating tag `v8` → that commit.
 
 See [Milestones](https://github.com/jose-compu/lacan-scan/milestones). Planned releases (v4 and later) are in [ROADMAP.md](ROADMAP.md).
 

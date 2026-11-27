@@ -57,4 +57,12 @@ extern rust lacan_shim {
     chat_template_issue(text: str) -> str
     llm_sink_line(path: str, text: str) -> int
     prompt_sink_line(path: str, text: str) -> int
+    npm_lifecycle_hook_line(text: str) -> int
+    hf_unpinned_from_pretrained_line(path: str, text: str) -> int
+    hf_trust_remote_code_line(path: str, text: str) -> int
+    instruction_override_line(path: str, text: str) -> int
+    control_token_line(path: str, text: str) -> int
+    pipe_to_shell_risk_line(path: str, text: str) -> int
+    line_is_pipe_shell_risk(path: str, text: str, line: int) -> bool
+    mcp_remote_url_allowed(chunk: str) -> bool
 }

@@ -111,19 +111,26 @@ jobs:
           body: |
             AI-safety static scanner for Git repositories.
 
-            ## 8.0.2
+            ## 8.0.3
 
-            No new rules. Same `@v8` line.
+            No new rules. Same `@v8` line. Fewer false positives.
 
-            - A clean run now shows what was scanned: `Scanned N files`, plus skipped rules and config-ignored findings. JSON `summary` adds `files_scanned`, `rules_skipped` and `ignored` (`failed` is unchanged). An empty run warns on stderr. Closes #129.
-            - The Action retries transient GitHub API errors (5xx, 429, timeouts) when resolving the release tag, instead of failing the job.
-            - Workflows moved off deprecated Node 20 actions. Closes #130.
-            - Release workflow can publish `lacan-scan` to crates.io via Trusted Publishing when enabled on crates.io; publish from the repo root with `./scripts/publish-crates.sh` (not bare `cargo publish` in `target/rust`). Refs #128.
-            - More AIS101 subdivision-flag tests.
+            - AIS001 no longer flags the hooks git-lfs installs in `.git/hooks` (#134). Closes #92.
+            - AIS001 treats only space and tab as blank lines in git-lfs hook templates.
+            - AIS004 matches npm lifecycle hooks only inside `package.json` `scripts`. Closes #93. Closes #106.
+            - AIS006 allows vendor MCP HTTPS endpoints such as `mcp.linear.app`. Closes #119.
+            - AIS008 skips doc-only installer strings, legacy `ollama.ai` docs URLs, and vendored swagger-ui bundles. Closes #113. Closes #125.
+            - AIS203 scopes unpinned `from_pretrained` to Hugging Face `transformers` call sites in Python. Closes #94.
+            - AIS102 / AIS103 skip locale bundles, defensive pattern lists, and comment-only control-token docs. Closes #96. Closes #102. Closes #105.
+            - AIS104 ignores role-splitting message parser assignments. Closes #103.
+            - AIS101 skips non-bidi invisible characters in code comments. Closes #104.
+            - AIS107 skips Sphinx apidoc Jinja templates. Closes #95.
+            - AIS105 skips ranking comments that mention bypassing a retrieval filter without safety context. Closes #109.
+            - AIS304 scopes logprobs-without-rate-limit to serving paths and skips vendor trees and import lines. Closes #112.
 
             #### Thanks
 
-            Thanks to @Aadithya-kl for #123, #131 and #132, and for the issue reports behind them.
+            Thanks to @Aadithya-kl for #134 and the git-lfs investigation behind it.
 
             ## GitHub Action
             ```yaml
@@ -138,7 +145,7 @@ jobs:
                 changed-base: "<pull_request.base.sha>"
             ```
 
-            Floating major tag `v8` tracks this release line (`v1`–`v7` remain for earlier rule sets). Pin `version: "8.0.2"` for a fixed binary. Drop `.lacan.toml` in the repo to skip false positives.
+            Floating major tag `v8` tracks this release line (`v1`–`v7` remain for earlier rule sets). Pin `version: "8.0.3"` for a fixed binary. Drop `.lacan.toml` in the repo to skip false positives.
       # Keep floating major tags (v1, v2, …) for `uses: jose-compu/lacan-scan@v1`.
       - name: Update major version tag
         env:

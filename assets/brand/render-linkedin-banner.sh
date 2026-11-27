@@ -2,7 +2,7 @@
 # Render a filled LinkedIn release banner PNG from linkedin-banner.template.svg.
 # Usage (from repo root):
 #   VERSION=v7.2.2 HEADLINE='...' BENEFIT_1='...' BENEFIT_2='...' BENEFIT_3='...' \
-#     ACTION_REF='jose-compu/lacan-scan@v8' VERSION_PIN='8.0.2' \
+#     ACTION_REF='jose-compu/lacan-scan@v8' VERSION_PIN='8.0.3' \
 #     ./assets/brand/render-linkedin-banner.sh
 #
 # Writes assets/brand/linkedin-banners/v${VERSION}.svg and .png (gitignored).
