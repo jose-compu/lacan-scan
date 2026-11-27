@@ -363,6 +363,19 @@ test "ais101 emoji zwj clean" = {
     assert_eq(len(fs), 0)
 }
 
+test "ais101 subdivision flag clean" = {
+    text := read_text("../../fixtures/AIS101/pass/flag.md", 100000)
+    fs := ais101("flag.md", text)
+    assert_eq(len(fs), 0)
+}
+
+test "ais101 bare tag letters" = {
+    text := read_text("../../fixtures/AIS101/fail/tag.md", 100000)
+    fs := ais101("tag.md", text)
+    assert_eq(len(fs) > 0, true)
+    assert_eq(fs[0].id, "AIS101")
+}
+
 test "ais101 utf8 bom clean" = {
     text := read_text("../../fixtures/AIS101/pass/bom.csproj", 100000)
     fs := ais101("bom.csproj", text)

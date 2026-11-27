@@ -12,15 +12,15 @@
   <a href="https://github.com/jose-compu/lacan-scan/actions/workflows/ci.yml"><img src="https://github.com/jose-compu/lacan-scan/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="https://github.com/jose-compu/lacan-scan/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/tests-crisp%20%2B%20e2e-2E4A3F?logo=githubactions&logoColor=F6EAD7" alt="Tests: Crisp + e2e" /></a>
   <a href="https://crisp-lang.org/"><img src="https://img.shields.io/badge/Crisp-1.11.1-C9A96A?labelColor=2E4A3F" alt="Crisp 1.11.1" /></a>
-  <a href="https://github.com/jose-compu/lacan-scan/releases"><img src="https://img.shields.io/badge/version-7.6.6-2E4A3F?labelColor=F6EAD7&color=2E4A3F" alt="Version 7.6.6" /></a>
+  <a href="https://github.com/jose-compu/lacan-scan/releases"><img src="https://img.shields.io/badge/version-8.0.1-2E4A3F?labelColor=F6EAD7&color=2E4A3F" alt="Version 8.0.1" /></a>
   <a href="https://crates.io/crates/lacan-scan"><img src="https://img.shields.io/crates/v/lacan-scan?label=crates.io&color=2E4A3F" alt="crates.io lacan-scan" /></a>
   <a href="https://github.com/marketplace/actions/lacan-scan"><img src="https://img.shields.io/badge/Marketplace-lacan--scan-2E4A3F?labelColor=C9A96A" alt="GitHub Marketplace" /></a>
-  <a href="https://github.com/jose-compu/lacan-scan/blob/main/action.yml"><img src="https://img.shields.io/badge/Action-lacan--scan%40v7-2088FF?logo=githubactions&logoColor=white" alt="GitHub Action @v7" /></a>
+  <a href="https://github.com/jose-compu/lacan-scan/blob/main/action.yml"><img src="https://img.shields.io/badge/Action-lacan--scan%40v8-2088FF?logo=githubactions&logoColor=white" alt="GitHub Action @v8" /></a>
   <a href="https://jose-compu.github.io/lacan-scan/"><img src="https://img.shields.io/badge/pages-live-2E4A3F?labelColor=C9A96A" alt="GitHub Pages" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-2E4A3F?labelColor=F6EAD7" alt="License Apache-2.0" /></a>
 </p>
 
-Static AI-safety scanner for repository folders (file traces only), built to gate pull requests into your main branch. The main way to run it is the GitHub Action `jose-compu/lacan-scan@v7` (earlier majors: `@v1`–`@v6`). The `lacan` CLI reproduces CI findings locally. Written in [Crisp](https://crisp-lang.org/) with a small Rust shim. Skip a false positive with a comment or a `.lacan.toml` — see [Skip false positives](#skip-false-positives).
+Static AI-safety scanner for repository folders (file traces only), built to gate pull requests into your main branch. The main way to run it is the GitHub Action `jose-compu/lacan-scan@v8` (earlier majors: `@v1`–`@v7`). The `lacan` CLI reproduces CI findings locally. Written in [Crisp](https://crisp-lang.org/) with a small Rust shim. Skip a false positive with a comment or a `.lacan.toml` — see [Skip false positives](#skip-false-positives).
 
 ## GitHub Action
 
@@ -50,16 +50,16 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: jose-compu/lacan-scan@v7
+      - uses: jose-compu/lacan-scan@v8
         with:
           path: .
           fail-on: HIGH
           output: sarif,cli
           sarif-file: lacan.sarif
-          version: "7"
+          version: "8"
           changed-only: ${{ github.event_name == 'pull_request' }}
           changed-base: ${{ github.event.pull_request.base.sha }}
       - uses: github/codeql-action/upload-sarif@v4
@@ -69,7 +69,7 @@ jobs:
           category: lacan
 ```
 
-The Action downloads a checksum-verified release binary. It does not compile Lacan Scan on the runner. Pin floating major `@v7` (tracks `v7.*`; earlier majors `@v1`–`@v6` remain). Pin binary `version: "7.6.6"` for a fixed artifact. PR workflows need `fetch-depth: 0` (or enough history) so `changed-base` resolves. A `.lacan.toml` in the scanned path is loaded automatically (or set `config:` / `skip-rules:`).
+The Action downloads a checksum-verified release binary. It does not compile Lacan Scan on the runner. Pin floating major `@v8` (tracks `v8.*`; earlier majors `@v1`–`@v7` remain). Pin binary `version: "8.0.1"` for a fixed artifact. PR workflows need `fetch-depth: 0` (or enough history) so `changed-base` resolves. A `.lacan.toml` in the scanned path is loaded automatically (or set `config:` / `skip-rules:`).
 
 **Marketplace listing:** [lacan-scan](https://github.com/marketplace/actions/lacan-scan) (README images use tagged assets for reliable rendering).
 
@@ -105,7 +105,7 @@ The Cargo package is `lacan-scan`; the installed binary is `lacan`.
 
 ```bash
 lacan scan [path] [--fail-on HIGH] [--output cli,json,sarif,junit]
-              [--rules agent,inject,model,llmio,iac] [--skip-rules AIS102]
+              [--rules agent,instruct,inject,model,llmio,iac] [--skip-rules AIS102]
               [--config .lacan.toml] [--no-config]
               [--changed-only [REF]] [--soft-fail]
 ```
@@ -114,7 +114,7 @@ lacan scan [path] [--fail-on HIGH] [--output cli,json,sarif,junit]
 | --- | --- |
 | `--fail-on` | `LOW` \| `MEDIUM` \| `HIGH` \| `CRITICAL` (default `HIGH`) |
 | `--output` | comma list: `cli`, `json`, `sarif`, `junit` |
-| `--rules` | rule ids or packs (`agent`, `inject`, `model`, `llmio`, `iac`) |
+| `--rules` | rule ids or packs (`agent`, `instruct`, `inject`, `model`, `llmio`, `iac`) |
 | `--skip-rules` | rule ids to skip (merged with `.lacan.toml`) |
 | `--config PATH` | suppression file (default: `.lacan.toml` or `lacan.toml` under the scan path) |
 | `--no-config` | do not load a suppression file (inline comments still apply) |
@@ -209,9 +209,9 @@ lacan scan . --config path/to/.lacan.toml
 ```
 
 ```yaml
-- uses: jose-compu/lacan-scan@v7
+- uses: jose-compu/lacan-scan@v8
   with:
-    version: "7"
+    version: "8"
     skip-rules: AIS102          # optional extra ids for this job
     config: .lacan.toml         # optional; auto-detected from `path` if omitted
 ```
@@ -230,6 +230,32 @@ CLI `--skip-rules` is **merged with** config `skip-rules` (both apply). Inline c
 ## Detectors
 
 All v1 and v2 rules remain enabled by default. See prior release notes for rule tables (AIS001–AIS504).
+
+### v8.0.1
+
+No new rules. Same `@v8` line. One HIGH false positive.
+
+The invisible-Unicode check no longer treats a subdivision flag emoji as hidden text. A complete flag is U+1F3F4, then 2 to 7 tag letters (U+E0061 through U+E007A), then U+E007F. Region flags in a UI were failing `--fail-on HIGH`. Tag characters outside that sequence stay HIGH, including a missing terminator, a run of a different length, a non-letter tag, and U+E0001. A bidi mark, a zero-width space, or any other invisible character on the same line stays HIGH. Emoji ZWJ, a single leading BOM, and the notebook placeholder exception are unchanged. Fixes [#121](https://github.com/jose-compu/lacan-scan/issues/121).
+
+### v8.0.0
+
+New attack category. First release of the `@v8` line. `v7` stays on v7.6.7.
+
+Coding agents load a few project files as standing orders. A rules file can hide an instruction there, often in an HTML comment, telling the agent to add a network call or to read a secret and not to mention it. Two HIGH checks cover that, and only on those files.
+
+**AIS701:** an HTML comment in `.cursorrules`, `.cursor/rules/*.md`, `.cursor/rules/*.mdc`, `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, or `.github/instructions/*.instructions.md` that tells the reader not to mention the text and also contains a URL or a secret read.
+
+**AIS702:** the same paths, where an instruction to add or append "this" or "the following" sits within 240 characters of `fetch(`, `curl`, `requests.post`, or `requests.get`.
+
+The same text in any other file is not a finding. A comment that only links to documentation is not a finding. A normal project guide is not a finding. Invisible characters, the three override phrases, and a live `curl | sh` stay on their existing checks.
+
+These checks fail the job at `--fail-on HIGH`. They are not experimental.
+
+### v7.6.7
+
+No new rules. Same `@v7` line. One HIGH false positive.
+
+AIS008 no longer treats a loopback `exec` port probe as a reverse shell. `exec 3<>`, `exec 3>`, and `exec 3<` aimed at `/dev/tcp/127.0.0.1/`, `/dev/tcp/localhost/`, or `/dev/tcp/::1/` are the same readiness check as the `echo >/dev/tcp/…` form from v7.6.4. Quoted paths and `2>/dev/null` on that line are included. An interactive `bash -i` or `sh -i`, a redirect of descriptor 0, 1, or 2 onto the socket, and any host other than loopback stay HIGH. `nc -e`, `ncat -e`, and curl or wget piped to a shell are unchanged, including the rustup, cargo-dist, uv, and Ollama allowlists. Fixes [#122](https://github.com/jose-compu/lacan-scan/issues/122).
 
 ### v7.6.6
 
@@ -496,9 +522,10 @@ Release process for maintainers: see `~/AGENTS.md` (*Lacan Scan release playbook
 | **v4** | `.lacan.toml` + inline skip comments, Action `@v4` |
 | **v5** | AIS106, AIS108, AIS109 (templates and hidden encodings), Action `@v5` |
 | **v6** | AIS208–210, AIS304; 6.1.0 adds experimental AIS107, AIS110, AIS205–207, AIS211. Action `@v6` |
-| **v7** | AIS301 flow; 7.1.0 AIS002 experimental; 7.2.0 AIS104 experimental; 7.2.1 fixture patch; 7.2.2 precision baseline; 7.2.3 AIS102 patch; 7.3.0 experimental AIS003; 7.4.0 experimental AIS004; 7.5.0 experimental AIS009; 7.6.0 experimental AIS006; 7.6.1 AIS008 and AIS101 precision; 7.6.2 AIS101 UTF-8 BOM; 7.6.3 AIS008 doc installers; 7.6.4 AIS008 loopback probe; 7.6.5 AIS101 Jupyter widget placeholder; 7.6.6 AIS008 escaped regex pipe. Action `@v7` |
+| **v8** | AIS701 and AIS702 instruction-file backdoor checks (HIGH, blocking). Action `@v8` |
+| **v7** | AIS301 flow; 7.1.0 AIS002 experimental; 7.2.0 AIS104 experimental; 7.2.1 fixture patch; 7.2.2 precision baseline; 7.2.3 AIS102 patch; 7.3.0 experimental AIS003; 7.4.0 experimental AIS004; 7.5.0 experimental AIS009; 7.6.0 experimental AIS006; 7.6.1 AIS008 and AIS101 precision; 7.6.2 AIS101 UTF-8 BOM; 7.6.3 AIS008 doc installers; 7.6.4 AIS008 loopback probe; 7.6.5 AIS101 Jupyter widget placeholder; 7.6.6 AIS008 escaped regex pipe; 7.6.7 AIS008 loopback exec probe. Action `@v7` |
 
-Tag `v7.6.6` (semver) or any `v7.*.*` tag triggers `.github/workflows/release.yml`, uploads platform tarballs, publishes the GitHub Release, and moves floating tag `v7` → that commit.
+Tag `v8.0.1` (semver) or any `v8.*.*` tag triggers `.github/workflows/release.yml`, uploads platform tarballs, publishes the GitHub Release, and moves floating tag `v8` → that commit.
 
 See [Milestones](https://github.com/jose-compu/lacan-scan/milestones). Planned releases (v4 and later) are in [ROADMAP.md](ROADMAP.md).
 

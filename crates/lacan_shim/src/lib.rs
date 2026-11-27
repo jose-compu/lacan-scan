@@ -380,6 +380,50 @@ fn zwj_between_ascii_idents(chars: &[char], zwj_idx: usize) -> bool {
     )
 }
 
+const BLACK_FLAG: u32 = 0x1F3F4;
+const TAG_LETTER_MIN: u32 = 0xE0061;
+const TAG_LETTER_MAX: u32 = 0xE007A;
+const CANCEL_TAG: u32 = 0xE007F;
+
+fn is_tag_letter(u: u32) -> bool {
+    (TAG_LETTER_MIN..=TAG_LETTER_MAX).contains(&u)
+}
+
+fn is_tag_block(u: u32) -> bool {
+    (0xE0000..=0xE007F).contains(&u)
+}
+
+/// Mark chars that belong to a complete subdivision-flag sequence (U+1F3F4, 2–7 tag letters, U+E007F).
+fn mark_subdivision_flag_tag_chars(chars: &[char], allowed: &mut [bool]) {
+    let mut i = 0;
+    while i < chars.len() {
+        if chars[i] as u32 != BLACK_FLAG {
+            i += 1;
+            continue;
+        }
+        let start = i;
+        i += 1;
+        let mut letters = 0u32;
+        while i < chars.len() {
+            let u = chars[i] as u32;
+            if is_variation_selector(chars[i]) {
+                break;
+            }
+            if !is_tag_letter(u) {
+                break;
+            }
+            letters += 1;
+            i += 1;
+        }
+        if (2..=7).contains(&letters) && i < chars.len() && chars[i] as u32 == CANCEL_TAG {
+            for j in start..=i {
+                allowed[j] = true;
+            }
+            i += 1;
+        }
+    }
+}
+
 /// Allow line when every U+200D is an emoji joiner or isolated prose (single ZWJ).
 fn line_zwj_allowed(line: &str) -> bool {
     let chars: Vec<char> = line.chars().collect();
@@ -401,59 +445,19 @@ fn line_zwj_allowed(line: &str) -> bool {
         .all(|&idx| zwj_is_emoji_joiner(&chars, idx))
 }
 
-const WAVING_BLACK_FLAG: u32 = 0x1F3F4;
-const CANCEL_TAG: u32 = 0xE007F;
-
-fn tag_lowercase_letter(u: u32) -> bool {
-    (0xE0061..=0xE007A).contains(&u)
-}
-
-fn tag_alnum(u: u32) -> bool {
-    tag_lowercase_letter(u) || (0xE0030..=0xE0039).contains(&u)
-}
-
-/// Length of a subdivision flag tag sequence starting at `start`, or 0.
-/// U+1F3F4, two tag letters, one to four tag letters or digits, then U+E007F
-/// (UTS #51 emoji tag sequence with a CLDR subdivision id, e.g. gbsct).
-fn subdivision_flag_len(chars: &[char], start: usize) -> usize {
-    if chars[start] as u32 != WAVING_BLACK_FLAG {
-        return 0;
-    }
-    let mut i = start + 1;
-    let mut spec_len = 0;
-    while i < chars.len() && spec_len < 6 {
-        let u = chars[i] as u32;
-        let ok = if spec_len < 2 {
-            tag_lowercase_letter(u)
-        } else {
-            tag_alnum(u)
-        };
-        if !ok {
-            break;
-        }
-        spec_len += 1;
-        i += 1;
-    }
-    if spec_len < 3 || i >= chars.len() || chars[i] as u32 != CANCEL_TAG {
-        return 0;
-    }
-    i + 1 - start
-}
-
 fn line_has_invisible_issue(line: &str) -> bool {
     let chars: Vec<char> = line.chars().collect();
+    let mut allowed_flag_tag = vec![false; chars.len()];
+    mark_subdivision_flag_tag_chars(&chars, &mut allowed_flag_tag);
+
     let mut saw_zwj = false;
     let mut other_invisible = false;
-    let mut i = 0;
-    while i < chars.len() {
-        let flag_len = subdivision_flag_len(&chars, i);
-        if flag_len > 0 {
-            i += flag_len;
+    for (idx, ch) in chars.iter().enumerate() {
+        let u = *ch as u32;
+        if !is_invisible_codepoint(u) {
             continue;
         }
-        let u = chars[i] as u32;
-        i += 1;
-        if !is_invisible_codepoint(u) {
+        if is_tag_block(u) && allowed_flag_tag[idx] {
             continue;
         }
         if u == 0x200D {
@@ -1268,6 +1272,36 @@ mod tests {
         assert_eq!(find_invisible_line(family), 0);
     }
 
+    #[test]
+    fn find_invisible_line_bom_cases() {
+        assert_eq!(find_invisible_line("\u{feff}<?xml version=\"1.0\"?>\n"), 0);
+        assert_eq!(find_invisible_line("\u{feff}"), 0);
+        assert_eq!(find_invisible_line("a\u{feff}b\n"), 1);
+        assert_eq!(find_invisible_line("ok\n\u{feff}no\n"), 2);
+        assert_eq!(find_invisible_line("\u{feff}plain \u{202e} text\n"), 1);
+        assert_eq!(find_invisible_line("\u{feff}\u{feff}x\n"), 1);
+    }
+
+    #[test]
+    fn find_invisible_line_subdivision_flag_cases() {
+        let scotland = "\u{1f3f4}\u{e0067}\u{e0062}\u{e0073}\u{e0063}\u{e0074}\u{e007f}\n";
+        assert_eq!(find_invisible_line(scotland), 0);
+        let england = "\u{1f3f4}\u{e0067}\u{e0062}\u{e0065}\u{e006e}\u{e0067}\u{e007f}\n";
+        let two_flags = format!("{scotland}{england}");
+        assert_eq!(find_invisible_line(&two_flags), 0);
+
+        assert_eq!(find_invisible_line("ok\n\u{e0067}\n"), 2);
+
+        let no_term = "\u{1f3f4}\u{e0067}\u{e0062}\u{e0073}\u{e0063}\u{e0074}\n";
+        assert_eq!(find_invisible_line(&format!("ok\n{no_term}")), 2);
+
+        let eight_tags = "\u{1f3f4}\u{e0067}\u{e0062}\u{e0073}\u{e0063}\u{e0074}\u{e0061}\u{e0062}\u{e0063}\u{e007f}\n";
+        assert_eq!(find_invisible_line(&format!("ok\n{eight_tags}")), 2);
+
+        let flag_bidi = "\u{1f3f4}\u{e0067}\u{e0062}\u{e0073}\u{e0063}\u{e0074}\u{e007f}\u{202e}\n";
+        assert_eq!(find_invisible_line(&format!("ok\n{flag_bidi}")), 2);
+    }
+
     fn tags(s: &str) -> String {
         s.chars()
             .map(|c| char::from_u32(0xE0000 + c as u32).unwrap())
@@ -1282,7 +1316,6 @@ mod tests {
         let three = format!("{} {} {}\n", flag("gbeng"), flag("gbsct"), flag("gbwls"));
         assert_eq!(find_invisible_line(&three), 0);
         assert_eq!(find_invisible_line(&format!("{}\n", flag("usca"))), 0);
-        assert_eq!(find_invisible_line(&format!("{}\n", flag("fr75c"))), 0);
     }
 
     #[test]
@@ -1298,8 +1331,8 @@ mod tests {
         // Smuggled text longer than a subdivision id.
         let long = format!("{black_flag}{}{cancel}\n", tags("ignoreall"));
         assert_eq!(find_invisible_line(&long), 1);
-        // Too short, uppercase, digit in region, space, and language tag.
-        for spec in ["gb", "GBSCT", "1bsct", "gb sct"] {
+        // Uppercase, digit, space, and language tag.
+        for spec in ["GBSCT", "1bsct", "gb sct"] {
             let line = format!("{black_flag}{}{cancel}\n", tags(spec));
             assert_eq!(find_invisible_line(&line), 1, "spec={spec}");
         }
@@ -1310,16 +1343,6 @@ mod tests {
         assert_eq!(find_invisible_line(&format!("{flag}\u{202e}\n")), 1);
         assert_eq!(find_invisible_line(&format!("{flag}{}\n", tags("hi"))), 1);
         assert_eq!(find_invisible_line(&format!("{flag}{cancel}\n")), 1);
-    }
-
-    #[test]
-    fn find_invisible_line_bom_cases() {
-        assert_eq!(find_invisible_line("\u{feff}<?xml version=\"1.0\"?>\n"), 0);
-        assert_eq!(find_invisible_line("\u{feff}"), 0);
-        assert_eq!(find_invisible_line("a\u{feff}b\n"), 1);
-        assert_eq!(find_invisible_line("ok\n\u{feff}no\n"), 2);
-        assert_eq!(find_invisible_line("\u{feff}plain \u{202e} text\n"), 1);
-        assert_eq!(find_invisible_line("\u{feff}\u{feff}x\n"), 1);
     }
 
     #[test]

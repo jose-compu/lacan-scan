@@ -111,26 +111,26 @@ jobs:
           body: |
             AI-safety static scanner for Git repositories.
 
-            ## 7.6.6
+            ## 8.0.1
 
-            No new rules. Same @v7 line. One HIGH false positive.
+            No new rules. Same @v8 line. One HIGH false positive.
 
-            A regular expression that describes a pipe-to-shell install is no longer a finding. The pipe must be escaped (\|), as in a pattern a scanner uses to block curl or wget into sh. A real unescaped pipe into a shell stays HIGH, including on the same line. nc -e and ncat -e stay HIGH. Fixes #101.
+            The invisible-Unicode check no longer treats a subdivision flag emoji as hidden text. A complete flag is U+1F3F4, then 2 to 7 tag letters (U+E0061 through U+E007A), then U+E007F. Region flags in a UI were failing `--fail-on HIGH`. Tag characters outside that sequence stay HIGH, including a missing terminator, a run of a different length, a non-letter tag, and U+E0001. A bidi mark, a zero-width space, or any other invisible character on the same line stays HIGH. Emoji ZWJ, a single leading BOM, and the notebook placeholder exception are unchanged. Fixes #121.
 
             ## GitHub Action
             ```yaml
-            - uses: jose-compu/lacan-scan@v7
+            - uses: jose-compu/lacan-scan@v8
               with:
                 path: .
                 fail-on: HIGH
                 output: sarif
                 sarif-file: lacan.sarif
-                version: "7"
+                version: "8"
                 changed-only: "true"
                 changed-base: "<pull_request.base.sha>"
             ```
 
-            Floating major tag `v7` tracks the current release line (`v1`–`v6` remain for earlier rule sets). Pin `version: "7.6.6"` for a fixed binary. Drop `.lacan.toml` in the repo to skip false positives.
+            Floating major tag `v8` tracks this release line (`v1`–`v7` remain for earlier rule sets). Pin `version: "8.0.1"` for a fixed binary. Drop `.lacan.toml` in the repo to skip false positives.
       # Keep floating major tags (v1, v2, …) for `uses: jose-compu/lacan-scan@v1`.
       - name: Update major version tag
         env:

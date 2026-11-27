@@ -1,6 +1,6 @@
 [package]
 name = "lacan-scan"
-version = "7.6.6"
+version = "8.0.1"
 edition = "2026"
 
 [build]
