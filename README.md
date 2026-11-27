@@ -87,7 +87,7 @@ lacan --version
 lacan scan . --fail-on HIGH
 ```
 
-The [GitHub Release](https://github.com/jose-compu/lacan-scan/releases) binary and the `@v8` Action are the reference install paths. The crates.io package is published from the release workflow when [Trusted Publishing](https://crates.io/docs/trusted-publishing/) is enabled for this repository; until then `cargo install lacan-scan` may lag behind the latest GitHub Release.
+The [GitHub Release](https://github.com/jose-compu/lacan-scan/releases) binary and the `@v8` Action are the reference install paths. The crates.io package is published from the release workflow when [Trusted Publishing](https://crates.io/docs/trusted-publishing/) is enabled for this repository; until then `cargo install lacan-scan` may lag behind the latest GitHub Release. Maintainers publish from the repo root with `./scripts/publish-crates.sh` (dry run), then `./scripts/publish-crates.sh --execute` (publishes `lacan_shim` first); do not run bare `cargo publish` inside `target/rust`.
 
 **Release binary:** download `lacan-<triple>.tar.gz` from [Releases](https://github.com/jose-compu/lacan-scan/releases), verify the `.sha256`, extract, and put `lacan` on your `PATH`.
 
@@ -242,7 +242,7 @@ No new rules. Same `@v8` line.
 - A clean run now shows what was scanned: `Scanned N files`, plus skipped rules and config-ignored findings. JSON `summary` adds `files_scanned`, `rules_skipped` and `ignored` (`failed` is unchanged). An empty run warns on stderr. Fixes [#129](https://github.com/jose-compu/lacan-scan/issues/129).
 - The Action retries transient GitHub API errors (5xx, 429, timeouts) when resolving the release tag, instead of failing the job.
 - Workflows moved off deprecated Node 20 actions. Fixes [#130](https://github.com/jose-compu/lacan-scan/issues/130).
-- Release workflow can publish `lacan-scan` to crates.io via Trusted Publishing when enabled on crates.io. Refs [#128](https://github.com/jose-compu/lacan-scan/issues/128).
+- Release workflow can publish `lacan-scan` to crates.io via Trusted Publishing when enabled on crates.io; `fix-emitted-cargo.sh` always version-pins the `lacan_shim` path dep so publish uses `./scripts/publish-crates.sh`, not bare `cargo publish` in `target/rust`. Refs [#128](https://github.com/jose-compu/lacan-scan/issues/128).
 - More AIS101 subdivision-flag tests.
 
 Thanks to @Aadithya-kl for #123, #131 and #132, and for the issue reports behind them.

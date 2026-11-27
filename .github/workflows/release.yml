@@ -118,7 +118,7 @@ jobs:
             - A clean run now shows what was scanned: `Scanned N files`, plus skipped rules and config-ignored findings. JSON `summary` adds `files_scanned`, `rules_skipped` and `ignored` (`failed` is unchanged). An empty run warns on stderr. Closes #129.
             - The Action retries transient GitHub API errors (5xx, 429, timeouts) when resolving the release tag, instead of failing the job.
             - Workflows moved off deprecated Node 20 actions. Closes #130.
-            - Release workflow can publish `lacan-scan` to crates.io via Trusted Publishing when enabled on crates.io (see README). Refs #128.
+            - Release workflow can publish `lacan-scan` to crates.io via Trusted Publishing when enabled on crates.io; publish from the repo root with `./scripts/publish-crates.sh` (not bare `cargo publish` in `target/rust`). Refs #128.
             - More AIS101 subdivision-flag tests.
 
             #### Thanks
