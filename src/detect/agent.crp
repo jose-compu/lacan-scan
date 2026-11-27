@@ -144,6 +144,40 @@ pub ais002(path, text) -> vec<Finding> = {
     }
 }
 
+-- git-lfs writes these four hooks into every clone of a repository that uses LFS, so they are local
+-- tooling, not something the repository ships. Each is the same three-line template; a hook with any other
+-- line (or a different name) is still reported.
+is_git_lfs_hook_name(base) = base == "post-checkout" || base == "post-commit" || base == "post-merge" || base == "pre-push"
+
+is_git_lfs_hook(base, text) = {
+    if !is_git_lfs_hook_name(base) {
+        false
+    } else {
+        all := split_lines(text)
+        n := len(all)
+        k mut:= 0
+        ok mut:= true
+        i mut:= 0
+        while i < n {
+            line := all[i]
+            if !re_is_match("^\\s*$", line) {
+                if k == 0 {
+                    ok = ok && re_is_match("^#!\\s*/(usr/)?bin/(env )?sh\\s*$", line)
+                } else if k == 1 {
+                    ok = ok && re_is_match("^command -v git-lfs >/dev/null 2>&1 \\|\\| \\x7B (echo|printf) >&2 \"[^\"`$]*\"( \"[^\"`$]*\")?; exit 2; \\x7D\\s*$", line)
+                } else if k == 2 {
+                    ok = ok && line == "git lfs " ++ base ++ " \"$@\""
+                } else {
+                    ok = false
+                }
+                k = k + 1
+            }
+            i = i + 1
+        }
+        ok && k == 3
+    }
+}
+
 pub ais001(path, text) -> vec<Finding> = {
     out := new()
     if has_skip(text, "AIS001") {
@@ -152,7 +186,7 @@ pub ais001(path, text) -> vec<Finding> = {
         -- Match real .git/hooks and fixture path .../dot-git/hooks/ (git cannot track nested .git).
         if str_contains(path, "/.git/hooks/") || str_contains(path, "/dot-git/hooks/") {
             base := path_basename(path)
-            if !str_ends_with(base, ".sample") {
+            if !str_ends_with(base, ".sample") && !is_git_lfs_hook(base, text) {
                 push(out, make_finding(
                     "AIS001",
                     Severity.High,
@@ -665,6 +699,35 @@ test "ais001 git hook path" = {
 test "ais001 ignores sample hooks" = {
     fs := ais001("repo/dot-git/hooks/pre-commit.sample", "#!/bin/sh\n")
     assert_eq(len(fs), 0)
+}
+
+test "ais001 ignores git-lfs hooks" = {
+    names := ["post-checkout", "post-commit", "post-merge", "pre-push"]
+    i mut:= 0
+    while i < 4 {
+        name := names[i]
+        text := read_text("../../fixtures/AIS001/pass/dot-git/hooks/" ++ name, 100000)
+        assert_eq(len(ais001("repo/.git/hooks/" ++ name, text)), 0)
+        i = i + 1
+    }
+}
+
+test "ais001 ignores git-lfs printf hook" = {
+    text := read_text("../../fixtures/AIS001/pass/lfs-printf/dot-git/hooks/post-checkout", 100000)
+    assert_eq(len(ais001("repo/.git/hooks/post-checkout", text)), 0)
+}
+
+test "ais001 git-lfs hook with extra line still fires" = {
+    text := read_text("../../fixtures/AIS001/fail/dot-git/hooks/post-merge", 100000)
+    fs := ais001("repo/.git/hooks/post-merge", text)
+    assert_eq(len(fs) > 0, true)
+    assert_eq(fs[0].id, "AIS001")
+}
+
+test "ais001 git-lfs template under another hook name still fires" = {
+    text := read_text("../../fixtures/AIS001/pass/dot-git/hooks/post-checkout", 100000)
+    assert_eq(len(ais001("repo/.git/hooks/pre-commit", text)) > 0, true)
+    assert_eq(len(ais001("repo/.git/hooks/post-commit", text)) > 0, true)
 }
 
 test "ais001 hooksPath in config" = {
