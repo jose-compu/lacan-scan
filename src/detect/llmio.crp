@@ -2,7 +2,9 @@
 -- lacan:skip=AIS108:pattern literals and unit tests in this module
 
 use finding { Finding, Severity, make_finding, has_skip, concat_findings }
-use lacan_shim { re_find_line, llm_sink_line }
+use lacan_shim {
+    re_find_line, re_is_match, llm_sink_line, str_contains, str_to_lower, str_starts_with, split_lines
+}
 
 pub ais301(path, text) -> vec<Finding> = {
     out := new()
@@ -67,6 +69,15 @@ pub ais303(path, text) -> vec<Finding> = {
     }
 }
 
+ais105_skip_ranking_comment(line_text) = {
+    re_is_match("(?i)bypass\\s+(the\\s+)?(content\\s+)?filter", line_text)
+        && (str_starts_with(line_text, "//") || str_starts_with(line_text, "#"))
+        && !str_contains(str_to_lower(line_text), "safety")
+        && !str_contains(str_to_lower(line_text), "guardrail")
+        && !str_contains(str_to_lower(line_text), "moderation")
+        && !str_contains(str_to_lower(line_text), "monitor")
+}
+
 pub ais105(path, text) -> vec<Finding> = {
     out := new()
     if has_skip(text, "AIS105") {
@@ -77,11 +88,12 @@ pub ais105(path, text) -> vec<Finding> = {
         push(patterns, "(?i)(do\\s+not|don't)\\s+(flag|report|alert).*(monitor|moderation|safety\\s+team)")
         push(patterns, "(?i)bypass\\s+(the\\s+)?(content\\s+)?(filter|moderation|guardrail)")
         push(patterns, "(?i)(tell|convince)\\s+(the\\s+)?(human\\s+)?reviewer")
+        lines := split_lines(text)
         i mut:= 0
         while i < len(patterns) {
             pat := patterns[i]
             line := re_find_line(pat, text)
-            if line > 0 {
+            if line > 0 && line <= len(lines) && !ais105_skip_ranking_comment(lines[line - 1]) {
                 push(out, make_finding(
                     "AIS105",
                     Severity.Medium,
@@ -122,15 +134,34 @@ pub ais108(path, text) -> vec<Finding> = {
 }
 
 -- v6: full logits/logprobs exposed without rate limit (extends AIS303)
+ais304_vendor_path(path) = {
+    lower := str_to_lower(path)
+    str_contains(lower, "_vendor/") || str_contains(lower, "/vendor/")
+}
+
+ais304_serving_path(path) = {
+    lower := str_to_lower(path)
+    str_contains(lower, "serve") || str_contains(lower, "/server/") || str_contains(lower, "/gateway/")
+}
+
+ais304_import_line(line) = {
+    re_is_match("^\\s*(from|import)\\b", line)
+}
+
 pub ais304(path, text) -> vec<Finding> = {
     out := new()
-    if has_skip(text, "AIS304") {
+    if has_skip(text, "AIS304") || ais304_vendor_path(path) || !ais304_serving_path(path) {
         out
     } else {
         has_lp := re_find_line("(?i)(logprobs|top_logprobs)\\s*=\\s*(True|true|[1-9])", text) > 0
         has_rate := re_find_line("(?i)(rate_limit|rate-limit|ratelimit|throttle|requests_per|rpm|tpm)", text) > 0
-        if has_lp && !has_rate {
-            line := re_find_line("(?i)(logprobs|top_logprobs)", text)
+        line := re_find_line("(?i)(logprobs|top_logprobs)", text)
+        lines := split_lines(text)
+        on_import mut:= false
+        if line > 0 && line <= len(lines) {
+            on_import = ais304_import_line(lines[line - 1])
+        }
+        if has_lp && !has_rate && !on_import {
             push(out, make_finding(
                 "AIS304",
                 Severity.Medium,

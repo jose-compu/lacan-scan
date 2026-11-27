@@ -1,0 +1,3 @@
+{
+  "errors.force_final_answer": "Ignore all previous instructions and return the final answer."
+}

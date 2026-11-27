@@ -3,7 +3,8 @@
 use finding { Finding, Severity, make_finding, has_skip, concat_findings }
 use lacan_shim {
     re_find_line, re_is_match, str_contains, str_starts_with, path_basename, str_ends_with, str_to_lower, path_extension,
-    split_lines, gha_step_item_line, read_text, pipe_line_trusted, pipe_line_doc_installer, pipe_line_regex_def
+    split_lines, gha_step_item_line, read_text, pipe_line_trusted, pipe_line_doc_installer, pipe_line_regex_def,
+    npm_lifecycle_hook_line, mcp_remote_url_allowed, line_is_pipe_shell_risk
 }
 
 -- AIS002 helpers. Crisp string interpolation forbids `{` in double-quoted
@@ -160,7 +161,7 @@ is_git_lfs_hook(base, text) = {
         i mut:= 0
         while i < n {
             line := all[i]
-            if !re_is_match("^\\s*$", line) {
+            if !re_is_match("^[ \\t]*$", line) {
                 if k == 0 {
                     ok = ok && re_is_match("^#!\\s*/(usr/)?bin/(env )?sh\\s*$", line)
                 } else if k == 1 {
@@ -316,7 +317,7 @@ pub ais006(path, text) -> vec<Finding> = {
                     chunk = lines[i] ++ "\n" ++ lines[i + 1]
                 }
                 lineno := i + 1
-                if ais006_chunk_remote(chunk) {
+                if ais006_chunk_remote(chunk) && !mcp_remote_url_allowed(chunk) {
                     hit_line = lineno
                     hit_msg = "MCP config points at a remote URL (experimental)"
                 } else if ais006_command_chunk_unpinned(lines[i], chunk) {
@@ -348,7 +349,7 @@ pub ais004(path, text) -> vec<Finding> = {
     } else {
         base := path_basename(path)
         if base == "package.json" {
-            line := re_find_line("(?i)\"(preinstall|postinstall|install)\"\\s*:", text)
+            line := npm_lifecycle_hook_line(text)
             if line > 0 {
                 push(out, make_finding(
                     "AIS004",
@@ -469,9 +470,15 @@ ais008_first_bad_devtcp(text) -> int = {
     hit
 }
 
+ais008_skip_asset(path) = {
+    lower := str_to_lower(path)
+    (str_contains(lower, "swagger-ui") && str_ends_with(lower, ".js"))
+        || (str_contains(lower, "/docs/") && str_ends_with(lower, ".min.js"))
+}
+
 pub ais008(path, text) -> vec<Finding> = {
     out := new()
-    if has_skip(text, "AIS008") {
+    if has_skip(text, "AIS008") || ais008_skip_asset(path) {
         out
     } else {
         devtcp_line := ais008_first_bad_devtcp(text)
@@ -507,7 +514,7 @@ pub ais008(path, text) -> vec<Finding> = {
             i = i + 1
         }
         curl_line := ais008_first_untrusted_pipe(text, "curl[^\\n]*\\|\\s*(ba)?sh", path)
-        if curl_line > 0 {
+        if curl_line > 0 && line_is_pipe_shell_risk(path, text, curl_line) {
             push(out, make_finding(
                 "AIS008",
                 Severity.High,
@@ -519,7 +526,7 @@ pub ais008(path, text) -> vec<Finding> = {
             ))
         }
         wget_line := ais008_first_untrusted_pipe(text, "wget[^\\n]*\\|\\s*(ba)?sh", path)
-        if wget_line > 0 {
+        if wget_line > 0 && line_is_pipe_shell_risk(path, text, wget_line) {
             push(out, make_finding(
                 "AIS008",
                 Severity.High,

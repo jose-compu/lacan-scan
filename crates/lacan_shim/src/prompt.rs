@@ -207,8 +207,38 @@ fn is_system_name(name: &str) -> bool {
         || lower == "sysprompt"
 }
 
+fn rhs_is_role_parser(rhs: &Node, src: &[u8]) -> bool {
+    if rhs.kind() != "call" && rhs.kind() != "call_expression" {
+        return false;
+    }
+    let Some(callee) = rhs.child_by_field_name("function") else {
+        return false;
+    };
+    let Ok(name) = callee.utf8_text(src) else {
+        return false;
+    };
+    let lower = name.to_ascii_lowercase();
+    lower.contains("parse") && (lower.contains("message") || lower.contains("chat"))
+}
+
+fn assign_targets_user_role(node: Node, src: &[u8]) -> bool {
+    assigned_names(node, src).iter().any(|n| {
+        let lower = n.to_ascii_lowercase();
+        lower.contains("user")
+            || lower.contains("planning")
+            || lower.contains("synthesis")
+            || lower.contains("conversation")
+    })
+}
+
 fn system_assign_sink(node: Node, src: &[u8], tainted: &HashSet<String>) -> Option<i64> {
     let rhs = assignment_value(node)?;
+    if rhs_is_role_parser(&rhs, src) {
+        return None;
+    }
+    if assign_targets_user_role(node, src) {
+        return None;
+    }
     if !reaches_untrusted(rhs, src, tainted) {
         return None;
     }
@@ -355,5 +385,15 @@ def build(docs):
     #[test]
     fn markdown_ignored() {
         assert_eq!(prompt_sink_line("notes.md", "system_prompt = retrieve()\n"), 0);
+    }
+
+    #[test]
+    fn parse_chat_messages_assignment_clean() {
+        let src = "\
+def route(messages):
+    system_prompt, conversation_messages, err = _parse_chat_messages(messages)
+    return system_prompt
+";
+        assert_eq!(prompt_sink_line("api_server_openai_routes.py", src), 0);
     }
 }

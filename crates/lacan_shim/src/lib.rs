@@ -3,8 +3,18 @@
 
 mod artifacts;
 mod flow;
+mod inject_match;
+mod mcp;
+mod model_load;
+mod npm;
+mod pipe_risk;
 mod prompt;
+pub use mcp::mcp_remote_url_allowed;
 pub use flow::llm_sink_line;
+pub use inject_match::{control_token_line, instruction_override_line};
+pub use model_load::{hf_trust_remote_code_line, hf_unpinned_from_pretrained_line};
+pub use npm::npm_lifecycle_hook_line;
+pub use pipe_risk::{line_is_pipe_shell_risk, pipe_to_shell_risk_line};
 pub use prompt::prompt_sink_line;
 pub use artifacts::{
     chat_template_issue, gguf_chat_templates, gguf_header_issue, model_format_issue,
@@ -445,6 +455,27 @@ fn line_zwj_allowed(line: &str) -> bool {
         .all(|&idx| zwj_is_emoji_joiner(&chars, idx))
 }
 
+fn line_is_code_comment(line: &str) -> bool {
+    let trimmed = line.trim_start();
+    trimmed.starts_with('#')
+        || trimmed.starts_with("//")
+        || trimmed.starts_with('*')
+        || trimmed.starts_with("/*")
+}
+
+fn line_has_bidi_or_tag_issue(line: &str) -> bool {
+    for ch in line.chars() {
+        let u = ch as u32;
+        if (0x202A..=0x202E).contains(&u)
+            || (0x2066..=0x2069).contains(&u)
+            || (0xE0000..=0xE007F).contains(&u)
+        {
+            return true;
+        }
+    }
+    false
+}
+
 fn line_has_invisible_issue(line: &str) -> bool {
     let chars: Vec<char> = line.chars().collect();
     let mut allowed_flag_tag = vec![false; chars.len()];
@@ -513,6 +544,9 @@ pub fn find_invisible_line_in(path: &str, text: &str) -> i64 {
         } else {
             raw_line
         };
+        if line_is_code_comment(line) && !line_has_bidi_or_tag_issue(line) {
+            continue;
+        }
         if !line_has_invisible_issue(line) {
             continue;
         }
@@ -595,6 +629,7 @@ fn doc_installer_url(url: &str) -> bool {
     }
     (host == "astral.sh" && path == "/uv/install.sh")
         || (host == "ollama.com" && path == "/install.sh")
+        || (host == "ollama.ai" && path == "/install.sh")
 }
 
 /// True when every https URL on the line is an official uv or Ollama doc installer (and there is at least one).
