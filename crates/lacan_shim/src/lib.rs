@@ -380,6 +380,50 @@ fn zwj_between_ascii_idents(chars: &[char], zwj_idx: usize) -> bool {
     )
 }
 
+const BLACK_FLAG: u32 = 0x1F3F4;
+const TAG_LETTER_MIN: u32 = 0xE0061;
+const TAG_LETTER_MAX: u32 = 0xE007A;
+const CANCEL_TAG: u32 = 0xE007F;
+
+fn is_tag_letter(u: u32) -> bool {
+    (TAG_LETTER_MIN..=TAG_LETTER_MAX).contains(&u)
+}
+
+fn is_tag_block(u: u32) -> bool {
+    (0xE0000..=0xE007F).contains(&u)
+}
+
+/// Mark chars that belong to a complete subdivision-flag sequence (U+1F3F4, 2–7 tag letters, U+E007F).
+fn mark_subdivision_flag_tag_chars(chars: &[char], allowed: &mut [bool]) {
+    let mut i = 0;
+    while i < chars.len() {
+        if chars[i] as u32 != BLACK_FLAG {
+            i += 1;
+            continue;
+        }
+        let start = i;
+        i += 1;
+        let mut letters = 0u32;
+        while i < chars.len() {
+            let u = chars[i] as u32;
+            if is_variation_selector(chars[i]) {
+                break;
+            }
+            if !is_tag_letter(u) {
+                break;
+            }
+            letters += 1;
+            i += 1;
+        }
+        if (2..=7).contains(&letters) && i < chars.len() && chars[i] as u32 == CANCEL_TAG {
+            for j in start..=i {
+                allowed[j] = true;
+            }
+            i += 1;
+        }
+    }
+}
+
 /// Allow line when every U+200D is an emoji joiner or isolated prose (single ZWJ).
 fn line_zwj_allowed(line: &str) -> bool {
     let chars: Vec<char> = line.chars().collect();
@@ -402,11 +446,18 @@ fn line_zwj_allowed(line: &str) -> bool {
 }
 
 fn line_has_invisible_issue(line: &str) -> bool {
+    let chars: Vec<char> = line.chars().collect();
+    let mut allowed_flag_tag = vec![false; chars.len()];
+    mark_subdivision_flag_tag_chars(&chars, &mut allowed_flag_tag);
+
     let mut saw_zwj = false;
     let mut other_invisible = false;
-    for ch in line.chars() {
-        let u = ch as u32;
+    for (idx, ch) in chars.iter().enumerate() {
+        let u = *ch as u32;
         if !is_invisible_codepoint(u) {
+            continue;
+        }
+        if is_tag_block(u) && allowed_flag_tag[idx] {
             continue;
         }
         if u == 0x200D {
@@ -1229,6 +1280,26 @@ mod tests {
         assert_eq!(find_invisible_line("ok\n\u{feff}no\n"), 2);
         assert_eq!(find_invisible_line("\u{feff}plain \u{202e} text\n"), 1);
         assert_eq!(find_invisible_line("\u{feff}\u{feff}x\n"), 1);
+    }
+
+    #[test]
+    fn find_invisible_line_subdivision_flag_cases() {
+        let scotland = "\u{1f3f4}\u{e0067}\u{e0062}\u{e0073}\u{e0063}\u{e0074}\u{e007f}\n";
+        assert_eq!(find_invisible_line(scotland), 0);
+        let england = "\u{1f3f4}\u{e0067}\u{e0062}\u{e0065}\u{e006e}\u{e0067}\u{e007f}\n";
+        let two_flags = format!("{scotland}{england}");
+        assert_eq!(find_invisible_line(&two_flags), 0);
+
+        assert_eq!(find_invisible_line("ok\n\u{e0067}\n"), 2);
+
+        let no_term = "\u{1f3f4}\u{e0067}\u{e0062}\u{e0073}\u{e0063}\u{e0074}\n";
+        assert_eq!(find_invisible_line(&format!("ok\n{no_term}")), 2);
+
+        let eight_tags = "\u{1f3f4}\u{e0067}\u{e0062}\u{e0073}\u{e0063}\u{e0074}\u{e0061}\u{e0062}\u{e0063}\u{e007f}\n";
+        assert_eq!(find_invisible_line(&format!("ok\n{eight_tags}")), 2);
+
+        let flag_bidi = "\u{1f3f4}\u{e0067}\u{e0062}\u{e0073}\u{e0063}\u{e0074}\u{e007f}\u{202e}\n";
+        assert_eq!(find_invisible_line(&format!("ok\n{flag_bidi}")), 2);
     }
 
     #[test]

@@ -111,19 +111,11 @@ jobs:
           body: |
             AI-safety static scanner for Git repositories.
 
-            ## 8.0.0
+            ## 8.0.1
 
-            New attack category. First release of the @v8 line. v7 stays on v7.6.7.
+            No new rules. Same @v8 line. One HIGH false positive.
 
-            Coding agents load a few project files as standing orders. A rules file can hide an instruction there, often in an HTML comment, telling the agent to add a network call or to read a secret and not to mention it. Two HIGH checks cover that, and only on those files.
-
-            AIS701: an HTML comment in `.cursorrules`, `.cursor/rules/*.md`, `.cursor/rules/*.mdc`, `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, or `.github/instructions/*.instructions.md` that tells the reader not to mention the text and also contains a URL or a secret read.
-
-            AIS702: the same paths, where an instruction to add or append "this" or "the following" sits within 240 characters of `fetch(`, `curl`, `requests.post`, or `requests.get`.
-
-            The same text in any other file is not a finding. A comment that only links to documentation is not a finding. A normal project guide is not a finding. Invisible characters, the three override phrases, and a live `curl | sh` stay on their existing checks.
-
-            These checks fail the job at `--fail-on HIGH`. They are not experimental.
+            The invisible-Unicode check no longer treats a subdivision flag emoji as hidden text. A complete flag is U+1F3F4, then 2 to 7 tag letters (U+E0061 through U+E007A), then U+E007F. Region flags in a UI were failing `--fail-on HIGH`. Tag characters outside that sequence stay HIGH, including a missing terminator, a run of a different length, a non-letter tag, and U+E0001. A bidi mark, a zero-width space, or any other invisible character on the same line stays HIGH. Emoji ZWJ, a single leading BOM, and the notebook placeholder exception are unchanged. Fixes #121.
 
             ## GitHub Action
             ```yaml
@@ -138,7 +130,7 @@ jobs:
                 changed-base: "<pull_request.base.sha>"
             ```
 
-            Floating major tag `v8` tracks this release line (`v1`–`v7` remain for earlier rule sets). Pin `version: "8.0.0"` for a fixed binary. Drop `.lacan.toml` in the repo to skip false positives.
+            Floating major tag `v8` tracks this release line (`v1`–`v7` remain for earlier rule sets). Pin `version: "8.0.1"` for a fixed binary. Drop `.lacan.toml` in the repo to skip false positives.
       # Keep floating major tags (v1, v2, …) for `uses: jose-compu/lacan-scan@v1`.
       - name: Update major version tag
         env:

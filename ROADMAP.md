@@ -220,6 +220,8 @@ Judge datasets and artifacts as a whole, not line by line. **Shipped in 6.0.0:**
 
 **8.0.0** adds blocking **AIS701** and **AIS702**: concealed URLs or secret reads, and insert-imperative network calls, in coding-agent instruction files (`.cursorrules`, `.cursor/rules/*`, `AGENTS.md`, `CLAUDE.md`, Copilot instruction paths). New attack category; `@v8`. L6 live probing stays undecided. Next experimental minors remain **AIS503**, then **AIS007**, then **AIS005**.
 
+**8.0.1** narrows AIS101 subdivision flag emoji: a complete tag sequence (U+1F3F4, 2–7 tag letters, U+E007F) is not a finding. Other invisible and bidi characters stay HIGH. No new rule ids. Fixes [#121](https://github.com/jose-compu/lacan-scan/issues/121).
+
 **7.6.7** narrows AIS008 loopback exec port probes: the spare-descriptor readiness check against 127.0.0.1, localhost, or IPv6 loopback matches the one-way echo probe from v7.6.4. Interactive shells, stdio on the socket, and other hosts stay HIGH. Installer allowlists and pipe-to-shell paths unchanged. No new rule ids. Fixes [#122](https://github.com/jose-compu/lacan-scan/issues/122).
 
 **7.6.6** narrows AIS008 on regex definitions that describe curl or wget piped into `sh` or `bash`: every shell pipe in that sequence must be escaped (`\|`), as in guard patterns that block pipe-to-shell installs. One unescaped pipe on the line stays HIGH, including beside an escaped pattern. Netcat `` `nc` `` / `` `ncat` `` `` `-e` `` primitives, installer allowlists, and the loopback probe exception are unchanged. No new rule ids. Fixes [#101](https://github.com/jose-compu/lacan-scan/issues/101).
