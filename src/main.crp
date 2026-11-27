@@ -290,6 +290,13 @@ scan_path_with_stats(opts) -> ScanResult = {
     }
 }
 
+-- With --changed-only an empty scan usually means the diff touched nothing scannable, not a bad path.
+empty_scan_warning(opts) = if opts.changed_only {
+    "lacan: no changed files to scan since " ++ opts.changed_base
+} else {
+    "lacan: no files scanned under " ++ opts.path ++ " (check the path)"
+}
+
 has_fmt(outputs, name) = vec_contains(outputs, name)
 
 emit_reports(result, opts) = {
@@ -340,7 +347,7 @@ pub main() = {
 
     result := scan_path_with_stats(opts)
     if result.files_scanned == 0 {
-        eprint_line("lacan: no files scanned under " ++ opts.path ++ " (check the path)")
+        eprint_line(empty_scan_warning(opts))
     }
     emit_reports(result, opts)
 
@@ -686,4 +693,14 @@ test "e2e stats count skipped rules" = {
     result := scan_path_with_stats(opts)
     assert_eq(result.rules_skipped, 1)
     assert_eq(result.ignored, 0)
+}
+
+test "empty_scan_warning points at the path" = {
+    opts := parse_args(argv2("scan", "missing-dir"))
+    assert_eq(empty_scan_warning(opts), "lacan: no files scanned under missing-dir (check the path)")
+}
+
+test "empty_scan_warning names the base with --changed-only" = {
+    opts := parse_args(argv4("scan", ".", "--changed-only", "main"))
+    assert_eq(empty_scan_warning(opts), "lacan: no changed files to scan since main")
 }
