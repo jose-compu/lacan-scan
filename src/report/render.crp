@@ -3,7 +3,7 @@
 use finding { Severity, make_finding, severity_name, singleton_finding }
 use lacan_shim {
     render_text_report, render_junit_report,
-    json_empty_array, json_push, json_len, json_pretty, json_string, json_set,
+    json_empty_array, json_push, json_pretty, json_string, json_set,
     vec_contains, str_vec_push, str_contains
 }
 
@@ -70,45 +70,42 @@ finding_json(f) -> json = {
     message: f.message,
 }
 
-pub render_json(findings, version) = {
+-- The JSON document both renderers share; only the summary differs between them.
+report_json(findings, version: str, summary: json) = {
     checks mut:= json_empty_array()
     i mut:= 0
     while i < len(findings) {
         checks = json_push(checks, finding_json(findings[i]))
         i = i + 1
     }
-    n := json_len(checks)
     doc := {
         tool: "lacan",
         version: version,
         results: { failed_checks: checks },
-        summary: { failed: n },
+        summary: summary,
     }
     json_pretty(doc)
+}
+
+summary_json(failed: int) -> json = { failed: failed }
+
+summary_json_with_stats(failed: int, files_scanned: int, rules_skipped: int, ignored: int) -> json = {
+    failed: failed,
+    files_scanned: files_scanned,
+    rules_skipped: rules_skipped,
+    ignored: ignored,
+}
+
+pub render_json(findings, version) = {
+    n := len(findings)
+    report_json(findings, version, summary_json(n))
 }
 
 -- Same document as render_json, plus how much was scanned, so a clean report can be told apart
 -- from a scan that matched nothing.
 pub render_json_with_stats(findings, version, files_scanned, rules_skipped, ignored) = {
-    checks mut:= json_empty_array()
-    i mut:= 0
-    while i < len(findings) {
-        checks = json_push(checks, finding_json(findings[i]))
-        i = i + 1
-    }
-    n := json_len(checks)
-    doc := {
-        tool: "lacan",
-        version: version,
-        results: { failed_checks: checks },
-        summary: {
-            failed: n,
-            files_scanned: files_scanned,
-            rules_skipped: rules_skipped,
-            ignored: ignored,
-        },
-    }
-    json_pretty(doc)
+    n := len(findings)
+    report_json(findings, version, summary_json_with_stats(n, files_scanned, rules_skipped, ignored))
 }
 
 plural(n, one, many) = if n == 1 { "{n} {one}" } else { "{n} {many}" }
