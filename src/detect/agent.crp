@@ -374,10 +374,20 @@ ais008_first_untrusted_pipe(text, pattern, path) -> int = {
 
 ais008_devtcp_dangerous(line) = {
     str_contains(line, "bash -i") ||
+        str_contains(line, "sh -i") ||
         str_contains(line, "0>&") ||
         str_contains(line, "0<&") ||
-        re_is_match("<>\\s*/dev/tcp/", line) ||
+        re_is_match("(?i)exec\\s+[012]\\s*<>?\\s*\"?/dev/tcp/", line) ||
+        re_is_match("(?i)exec\\s+[012]\\s*>/dev/tcp/", line) ||
+        re_is_match("(?i)exec\\s+[012]\\s*</dev/tcp/", line) ||
+        (str_contains(line, "/dev/tcp/") && re_is_match("<&[0-9]", line)) ||
         re_is_match(">&\\s*/dev/tcp/", line)
+}
+
+ais008_devtcp_exec_probe_ok(line) = {
+    re_is_match("(?i)exec\\s+([3-9]|[1-9][0-9]*)\\s*(<>|>|</?)", line) &&
+        str_contains(line, "/dev/tcp/") &&
+        ais008_devtcp_allowed_host(line)
 }
 
 ais008_devtcp_allowed_host(line) = {
@@ -398,14 +408,14 @@ ais008_devtcp_forbidden_host(line) = {
 ais008_devtcp_probe_ok(line) = {
     if ais008_devtcp_dangerous(line) {
         false
-    } else if !re_is_match("(?i)echo[^\\n]*>/dev/tcp/", line) {
-        false
     } else if ais008_devtcp_forbidden_host(line) {
         false
-    } else if !ais008_devtcp_allowed_host(line) {
-        false
-    } else {
+    } else if re_is_match("(?i)echo[^\\n]*>/dev/tcp/", line) && ais008_devtcp_allowed_host(line) {
         true
+    } else if ais008_devtcp_exec_probe_ok(line) {
+        true
+    } else {
+        false
     }
 }
 
@@ -690,10 +700,47 @@ test "ais008 localhost interactive shell high" = {
     assert_eq(fs[0].id, "AIS008")
 }
 
-test "ais008 exec bidirectional loopback high" = {
-    fs := ais008("rev.sh", "exec 3<>/dev/tcp/127.0.0.1/4444\n")
-    assert_eq(len(fs) > 0, true)
-    assert_eq(fs[0].id, "AIS008")
+test "ais008 exec loopback probe clean" = {
+    fs1 := ais008("h.sh", "exec 3<>/dev/tcp/127.0.0.1/4444\n")
+    fs2 := ais008("h.sh", "exec 3<>\"/dev/tcp/127.0.0.1/8080\"\n")
+    fs3 := ais008("h.sh", "exec 3<>/dev/tcp/localhost/8080\n")
+    fs4 := ais008("h.sh", "exec 3<>/dev/tcp/::1/8080\n")
+    fs5 := ais008("h.sh", "exec 3>/dev/tcp/127.0.0.1/8080\n")
+    fs6 := ais008("h.sh", "exec 3</dev/tcp/127.0.0.1/8080\n")
+    assert_eq(len(fs1), 0)
+    assert_eq(len(fs2), 0)
+    assert_eq(len(fs3), 0)
+    assert_eq(len(fs4), 0)
+    assert_eq(len(fs5), 0)
+    assert_eq(len(fs6), 0)
+}
+
+test "ais008 exec loopback still high when dangerous" = {
+    fs0 := ais008("rev.sh", "exec 0<>/dev/tcp/127.0.0.1/9\n")
+    fs1 := ais008("rev.sh", "exec 1>/dev/tcp/127.0.0.1/9\n")
+    fs2 := ais008("rev.sh", "exec 2>/dev/tcp/127.0.0.1/9\n")
+    fs3 := ais008("rev.sh", "sh -i >& /dev/tcp/127.0.0.1/4444 0>&1\n")
+    fs4 := ais008("rev.sh", "exec 3<>/dev/tcp/127.0.0.1/9; cat <&3\n")
+    fs5 := ais008("rev.sh", "exec 3<>/dev/tcp/127.0.0.1/4444 0>&1\n")
+    fs6 := ais008("rev.sh", "exec 3<>/dev/tcp/10.0.0.1/4444\n")
+    assert_eq(len(fs0) > 0, true)
+    assert_eq(len(fs1) > 0, true)
+    assert_eq(len(fs2) > 0, true)
+    assert_eq(len(fs3) > 0, true)
+    assert_eq(len(fs4) > 0, true)
+    assert_eq(len(fs5) > 0, true)
+    assert_eq(len(fs6) > 0, true)
+}
+
+test "ais008 exec loopback fd dup not stdio clean" = {
+    fs := ais008("h.sh", "exec 3<>/dev/tcp/127.0.0.1/8080 4>&3\n")
+    assert_eq(len(fs), 0)
+}
+
+test "ais008 exec loopback pass fixture" = {
+    text := read_text("../../fixtures/AIS008/pass/exec-loopback.sh", 100000)
+    fs := ais008("hack/verify-port.sh", text)
+    assert_eq(len(fs), 0)
 }
 
 test "ais008 echo non loopback host high" = {
